@@ -1,4 +1,0 @@
-/home/shu/catkin_ws/src/dso/build/CMakeFiles/rebuild_cache.dir
-/home/shu/catkin_ws/src/dso/build/CMakeFiles/edit_cache.dir
-/home/shu/catkin_ws/src/dso/build/CMakeFiles/dso_dataset.dir
-/home/shu/catkin_ws/src/dso/build/CMakeFiles/dso.dir
