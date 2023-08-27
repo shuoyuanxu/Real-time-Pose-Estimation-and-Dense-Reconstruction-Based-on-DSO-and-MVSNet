@@ -291,3 +291,4 @@ rosbag play --pause MH_01_easy.bag
 rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
 rostopic echo /curSE3
 ```
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/f583aa74-778c-4050-a09a-2134dee3f1b9)
