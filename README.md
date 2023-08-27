@@ -196,6 +196,9 @@ torch.cuda.is_available()
 ```
 
 ## Week2: A ROS API for DSO
+
+The input required for MVSNet consists of the camera state and the images within a sliding window. To facilitate this, an API is needed to extract these data from DSO.
+
 ### Install DSO_ROS
 ```
 export DSO_PATH=/home/shu/catkin_ws/src/dso
@@ -213,6 +216,10 @@ Use rostopic list to find the correct image source here
 image:=/cam0/image_raw
 ```
 ### Steps to add a publisher to a exisiting CPP cmake project
+The following sections will utilise the camera states, often referred to as `camToWorld`, as an example to illustrate how to develop such an API.
+
+> **Note**: For the code related to handling images, please refer to the source code directly.
+
 1. Define the  to-be-published message in dso_ros/msg/SE3Msg.msg
 ```
 float64[16] camToWorld
