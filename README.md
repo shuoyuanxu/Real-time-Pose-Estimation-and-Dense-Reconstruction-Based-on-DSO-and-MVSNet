@@ -209,4 +209,85 @@ rosbag play --pause MH_01_easy.bag
 rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
 ```
 Use rostopic list to find the correct image source here
-```image:=/cam0/image_raw```
+```
+image:=/cam0/image_raw
+```
+### Steps to add a publisher to a exisiting CPP cmake project
+1. Define the  to-be-published message in dso_ros/msg/SE3Msg.msg
+```
+float64[16] camToWorld
+```
+2. Make a ros publisher in catkin_ws
+0) include the message header
+```
+float64[16] camToWorld
+```
+1) define the publisher variable
+```
+#include "dso_ros/SE3Msg.h"
+```
+2) assigning values to the defined variable
+```
+dso_ros::SE3Msg SE3;
+for(int i=0; i<4; i++)
+    for(int j=0; j<4; j++)
+        SE3.camToWorld[4*i+j] = fullSystem->get_curSE3().matrix()(i,j);
+SE3Pub.publish(SE3);
+```
+3) initialise the ros node
+```
+ros::init(argc, argv, "dso_live");
+ros::NodeHandle nh;
+```
+4) publish
+```
+SE3Pub = nh.advertise<dso_ros::SE3Msg>("curSE3", 10);
+ros::spin();
+```
+5) Modify cmakelist.txt 
+```
+find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  std_msgs
+  geometry_msgs
+  roscpp
+  sensor_msgs
+  cv_bridge
+)
+
+add_message_files(
+  FILES
+  SE3Msg.msg
+  SlidingWindowsMsg.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  sensor_msgs
+  std_msgs
+)
+```
+6) Modify package.xml
+```
+<build_depend>cv_bridge</build_depend>
+<build_depend>message_generation</build_depend>
+  
+<run_depend>cv_bridge</run_depend>
+<run_depend>message_runtime</run_depend>
+```
+  
+3. Implement a function to retrieve the values within the original cpp code
+```
+SE3 get_curSE3(); // in a .h file
+// in the corresponding .cpp file
+SE3 FullSystem::get_curSE3(){
+    return allFrameHistory[allFrameHistory.size()-1]->camToWorld; // the last frame of state (newest)
+}
+```
+4. Testing(4 terminals)
+```
+roscore
+rosbag play --pause MH_01_easy.bag
+rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
+rostopic echo /curSE3
+```
