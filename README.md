@@ -194,3 +194,19 @@ import torch
 print(torch.rand(5, 3))
 torch.cuda.is_available()
 ```
+
+## Week2: A ROS API for DSO
+### Install DSO_ROS
+```
+export DSO_PATH=/home/shu/catkin_ws/src/dso
+catkin_make
+```
+Testing
+```
+source catkin_ws/devel/setup.bash
+roscore
+rosbag play --pause MH_01_easy.bag
+rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
+```
+Use rostopic list to find the correct image source here
+```image:=/cam0/image_raw```
