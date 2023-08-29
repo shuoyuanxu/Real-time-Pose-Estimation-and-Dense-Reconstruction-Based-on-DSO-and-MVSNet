@@ -13,7 +13,7 @@ Most existing monocular dense mapping algorithms often struggle to meet real-tim
 
 * Map Construction: Photometric errors are used to effectively remove outliers. Additionally, we integrate adaptive voxel filtering to reduce the memory footprint of the dense point cloud map.
 
-Why DSO + MVSNET?: 
+Why [DSO](https://github.com/JakobEngel/dso) + MVSNET?: 
 
 DSO (Direct Sparse Odometry) uses a sliding window approach for Bundle Adjustment (BA), which makes it an ideal input for MVSNet. In contrast to keyframe-based methods like ORB-SLAM, where choosing the right images for processing can be tricky, DSO's sliding window naturally provides a continuous and optimised set of images. This makes it easier and more effective to integrate with MVSNet for real-time, high-quality 3D reconstruction.
 
