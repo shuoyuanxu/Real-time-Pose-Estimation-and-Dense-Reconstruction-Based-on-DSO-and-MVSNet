@@ -371,7 +371,7 @@ int main(int argc, char **argv) {
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/4768e8c0-8dbc-4ce5-af64-b91cc893eaf8)
 
-2. SLAM 14, ch5
+2. [SLAM 14](https://github.com/gaoxiang12/slambook), ch5
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/1275d8d9-ae96-4367-a9c0-a599ce6fc3fd)
 
 ### Understanding PCL Functionalities (pcl::PointCloud)
