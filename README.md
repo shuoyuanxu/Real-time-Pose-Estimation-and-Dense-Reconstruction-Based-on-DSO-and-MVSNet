@@ -1,4 +1,4 @@
-# Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet
+# Real time Pose Estimation and Dense Reconstruction Based on DSO and MVSNet
 To improve my mathematical, machine learning and coding skills as an algorithm engineer, here is a passion project of mine (update weekly)   
 
 System Description (to be updated)
