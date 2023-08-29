@@ -301,6 +301,7 @@ rostopic echo /curSE3
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/f583aa74-778c-4050-a09a-2134dee3f1b9)
 
 ## Week3: Understanding PCL
+PCL will be used to process the output of MVSNet to obtain an accurate 3d reconstruction. Therefore, understanding the basics of PCL is required for the next stage of development 
 ### Testing (Already installed with ROS)
 1. Simple Visulisation
  cmakelist.txt
