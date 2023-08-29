@@ -299,3 +299,127 @@ rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/ca
 rostopic echo /curSE3
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/f583aa74-778c-4050-a09a-2134dee3f1b9)
+
+## Week3: Understanding PCL
+### Testing (Already installed with ROS)
+1. Simple Visulisation
+ cmakelist.txt
+```
+cmake_minimum_required(VERSION 2.6)
+project(pcl_test)
+
+find_package(PCL 1.12 REQUIRED)
+
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
+add_executable(pcl_test pcl_test.cpp)
+
+target_link_libraries (pcl_test ${PCL_LIBRARIES})
+
+install(TARGETS pcl_test RUNTIME DESTINATION bin)
+```
+pcl_test.cpp
+```
+#include <iostream>
+#include <pcl/common/common_headers.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/console/parse.h>
+ 
+ 
+int main(int argc, char **argv) {
+    std::cout << "Test PCL !!!" << std::endl;
+    
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+    uint8_t r(255), g(15), b(15);
+    for (float z(-1.0); z <= 1.0; z += 0.05)
+    {
+      for (float angle(0.0); angle <= 360.0; angle += 5.0)
+      {
+        pcl::PointXYZRGB point;
+        point.x = 0.5 * cosf (pcl::deg2rad(angle));
+        point.y = sinf (pcl::deg2rad(angle));
+        point.z = z;
+        uint32_t rgb = (static_cast<uint32_t>(r) << 16 |
+                static_cast<uint32_t>(g) << 8 | static_cast<uint32_t>(b));
+        point.rgb = *reinterpret_cast<float*>(&rgb);
+        point_cloud_ptr->points.push_back (point);
+      }
+      if (z < 0.0)
+      {
+        r -= 12;
+        g += 12;
+      }
+      else
+      {
+        g -= 12;
+        b += 12;
+      }
+    }
+    point_cloud_ptr->width = (int) point_cloud_ptr->points.size ();
+    point_cloud_ptr->height = 1;
+    
+    pcl::visualization::CloudViewer viewer ("test");
+    viewer.showCloud(point_cloud_ptr);
+    while (!viewer.wasStopped()){ };
+    return 0;
+}
+```
+[Image]
+
+2. SLAM 14, ch5
+[Image]
+### Understanding PCL Functionalities (pcl::PointCloud)
+1. Type
+```
+pcl::PointCloud<pcl::PointXYZ> XYZ only
+pcl::PointCloud<pcl::PointXYZRGB> XYZ with RGB
+```
+2. Create
+```
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+```
+  ```::Ptr: smart pointer (boost::shared_ptr)``` to the point cloud object. 
+  ```new pcl::PointCloud<pcl::PointXYZ>()``` creates a new point cloud object
+  ```cloud(new pcl::PointCloud<pcl::PointXYZ>)``` This initialises the smart pointer cloud with the newly created point cloud object.
+4. Access
+  1. By index
+```
+pcl::PointXYZ point = cloud->points[0]; // access the first point 
+float x = point.x;
+float y = point.y;
+float z = point.z;
+```
+  2. Traverse 
+```
+for (pcl::PointCloud<pcl::PointXYZ>::iterator it = cloud->begin(); it != cloud->end(); ++it) {
+    pcl::PointXYZ point = *it;
+}
+```
+4. Load
+  ```pcl::io::loadPCDFile```
+  ```pcl::io::loadPLYFile```
+  ```pcl::io::loadOBJFile```
+  e.g.
+```
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+pcl::io::loadPCDFile("cloud.pcd", *cloud);
+```
+5. Save
+  ```pcl::io::savePCDFile```
+  ```pcl::io::savePLYFile```
+  ```pcl::io::saveOBJFile```
+  e.g.
+```pcl::io::savePCDFile("output_cloud.pcd", *cloud);```
+6. Coordinate Transformation
+  1. Define transformation
+```
+Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+transform.translation() = translation;
+transform.rotate(rotation);
+```
+  B. Perform transformation
+```pcl::transformPointCloud(*cloud_original, *cloud_transformed, transform);```
