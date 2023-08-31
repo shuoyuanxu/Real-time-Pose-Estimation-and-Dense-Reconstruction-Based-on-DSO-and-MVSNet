@@ -174,7 +174,7 @@ def depth_map_fusion(point_folder, fusibile_exe_path, disp_thresh, num_consisten
     depth_max = 100000
     normal_thresh = 360
 
-    cmd = fusibile_exe_path
+    cmd = 'sudo ' + fusibile_exe_path
     cmd = cmd + ' -input_folder ' + point_folder + '/'
     cmd = cmd + ' -p_folder ' + cam_folder + '/'
     cmd = cmd + ' -images_folder ' + image_folder + '/'

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 datapath="/home/shu/Database/UniMVSNet/dtu"
-outdir="/home/shu/Database/UniMVSNet/ouput"
+outdir="/home/shu/Database/UniMVSNet/output"
 resume="/home/shu/Database/UniMVSNet/model/unimvsnet_dtu.ckpt"
-fusibile_exe_path="/home/shu/Database/UniMVSNet/fusibile"
+fusibile_exe_path="/home/shu/Database/UniMVSNet/fusibile/fusibile"
 
 CUDA_VISIBLE_DEVICES=0 python3 main.py \
         --test \
