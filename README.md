@@ -1,4 +1,4 @@
-# Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet
+# Real time Pose Estimation and Dense Reconstruction Based on DSO and MVSNet
 To improve my mathematical, machine learning and coding skills as an algorithm engineer, here is a passion project of mine (update weekly)   
 
 System Description (to be updated)
@@ -13,7 +13,7 @@ Most existing monocular dense mapping algorithms often struggle to meet real-tim
 
 * Map Construction: Photometric errors are used to effectively remove outliers. Additionally, we integrate adaptive voxel filtering to reduce the memory footprint of the dense point cloud map.
 
-Why DSO + MVSNET?: 
+Why [DSO](https://github.com/JakobEngel/dso) + [MVSNET](https://github.com/prstrive/UniMVSNet)?: 
 
 DSO (Direct Sparse Odometry) uses a sliding window approach for Bundle Adjustment (BA), which makes it an ideal input for MVSNet. In contrast to keyframe-based methods like ORB-SLAM, where choosing the right images for processing can be tricky, DSO's sliding window naturally provides a continuous and optimised set of images. This makes it easier and more effective to integrate with MVSNet for real-time, high-quality 3D reconstruction.
 
@@ -194,3 +194,234 @@ import torch
 print(torch.rand(5, 3))
 torch.cuda.is_available()
 ```
+
+## Week2: A ROS API for DSO
+
+The input required for MVSNet consists of the camera state and the images within a sliding window. To facilitate this, an API is needed to extract these data from DSO.
+
+### Install [DSO_ROS](https://github.com/BluewhaleRobot/dso_ros)
+```
+export DSO_PATH=/home/shu/catkin_ws/src/dso
+catkin_make
+```
+Testing
+```
+source catkin_ws/devel/setup.bash
+roscore
+rosbag play --pause MH_01_easy.bag
+rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
+```
+Use rostopic list to find the correct image source here
+```
+image:=/cam0/image_raw
+```
+### Steps to add a publisher to a exisiting CPP cmake project
+The following sections will utilise the camera states, often referred to as `camToWorld`, as an example to illustrate how to develop such an API.
+
+> **Note**: For the code related to handling images, please refer to the source code directly.
+
+1. Define the  to-be-published message in dso_ros/msg/SE3Msg.msg
+```
+float64[16] camToWorld
+```
+2. Make a ros publisher in catkin_ws
+0) include the message header
+```
+float64[16] camToWorld
+```
+1) define the publisher variable
+```
+#include "dso_ros/SE3Msg.h"
+```
+2) assigning values to the defined variable
+```
+dso_ros::SE3Msg SE3;
+for(int i=0; i<4; i++)
+    for(int j=0; j<4; j++)
+        SE3.camToWorld[4*i+j] = fullSystem->get_curSE3().matrix()(i,j);
+SE3Pub.publish(SE3);
+```
+3) initialise the ros node
+```
+ros::init(argc, argv, "dso_live");
+ros::NodeHandle nh;
+```
+4) publish
+```
+SE3Pub = nh.advertise<dso_ros::SE3Msg>("curSE3", 10);
+ros::spin();
+```
+5) Modify cmakelist.txt 
+```
+find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  std_msgs
+  geometry_msgs
+  roscpp
+  sensor_msgs
+  cv_bridge
+)
+
+add_message_files(
+  FILES
+  SE3Msg.msg
+  SlidingWindowsMsg.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  sensor_msgs
+  std_msgs
+)
+```
+6) Modify package.xml
+```
+<build_depend>cv_bridge</build_depend>
+<build_depend>message_generation</build_depend>
+  
+<run_depend>cv_bridge</run_depend>
+<run_depend>message_runtime</run_depend>
+```
+  
+3. Implement a function to retrieve the values within the original cpp code
+```
+SE3 get_curSE3(); // in a .h file
+// in the corresponding .cpp file
+SE3 FullSystem::get_curSE3(){
+    return allFrameHistory[allFrameHistory.size()-1]->camToWorld; // the last frame of state (newest)
+}
+```
+4. Testing(4 terminals)
+```
+roscore
+rosbag play --pause MH_01_easy.bag
+rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
+rostopic echo /curSE3
+```
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/f583aa74-778c-4050-a09a-2134dee3f1b9)
+
+## Week3: Understanding PCL
+PCL will be used to process the output of MVSNet to obtain an accurate 3d reconstruction. Therefore, understanding the basics of PCL is required for the next stage of development 
+### Testing (Already installed with ROS)
+1. Simple Visulisation
+ cmakelist.txt
+```
+cmake_minimum_required(VERSION 2.6)
+project(pcl_test)
+
+find_package(PCL 1.12 REQUIRED)
+
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
+add_executable(pcl_test pcl_test.cpp)
+
+target_link_libraries (pcl_test ${PCL_LIBRARIES})
+
+install(TARGETS pcl_test RUNTIME DESTINATION bin)
+```
+pcl_test.cpp
+```
+#include <iostream>
+#include <pcl/common/common_headers.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/visualization/cloud_viewer.h>
+#include <pcl/console/parse.h>
+ 
+ 
+int main(int argc, char **argv) {
+    std::cout << "Test PCL !!!" << std::endl;
+    
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
+    uint8_t r(255), g(15), b(15);
+    for (float z(-1.0); z <= 1.0; z += 0.05)
+    {
+      for (float angle(0.0); angle <= 360.0; angle += 5.0)
+      {
+        pcl::PointXYZRGB point;
+        point.x = 0.5 * cosf (pcl::deg2rad(angle));
+        point.y = sinf (pcl::deg2rad(angle));
+        point.z = z;
+        uint32_t rgb = (static_cast<uint32_t>(r) << 16 |
+                static_cast<uint32_t>(g) << 8 | static_cast<uint32_t>(b));
+        point.rgb = *reinterpret_cast<float*>(&rgb);
+        point_cloud_ptr->points.push_back (point);
+      }
+      if (z < 0.0)
+      {
+        r -= 12;
+        g += 12;
+      }
+      else
+      {
+        g -= 12;
+        b += 12;
+      }
+    }
+    point_cloud_ptr->width = (int) point_cloud_ptr->points.size ();
+    point_cloud_ptr->height = 1;
+    
+    pcl::visualization::CloudViewer viewer ("test");
+    viewer.showCloud(point_cloud_ptr);
+    while (!viewer.wasStopped()){ };
+    return 0;
+}
+```
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/4768e8c0-8dbc-4ce5-af64-b91cc893eaf8)
+
+2. [SLAM 14](https://github.com/gaoxiang12/slambook), ch5
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/1275d8d9-ae96-4367-a9c0-a599ce6fc3fd)
+
+### Understanding PCL Functionalities (pcl::PointCloud)
+1. Type
+```
+pcl::PointCloud<pcl::PointXYZ> XYZ only
+pcl::PointCloud<pcl::PointXYZRGB> XYZ with RGB
+```
+2. Create
+```
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+```
+  ```::Ptr: smart pointer (boost::shared_ptr)``` to the point cloud object. 
+  ```new pcl::PointCloud<pcl::PointXYZ>()``` creates a new point cloud object
+  ```cloud(new pcl::PointCloud<pcl::PointXYZ>)``` This initialises the smart pointer cloud with the newly created point cloud object.
+4. Access
+  1. By index
+```
+pcl::PointXYZ point = cloud->points[0]; // access the first point 
+float x = point.x;
+float y = point.y;
+float z = point.z;
+```
+  2. Traverse 
+```
+for (pcl::PointCloud<pcl::PointXYZ>::iterator it = cloud->begin(); it != cloud->end(); ++it) {
+    pcl::PointXYZ point = *it;
+}
+```
+4. Load
+  ```pcl::io::loadPCDFile```
+  ```pcl::io::loadPLYFile```
+  ```pcl::io::loadOBJFile```
+  e.g.
+```
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+pcl::io::loadPCDFile("cloud.pcd", *cloud);
+```
+5. Save
+  ```pcl::io::savePCDFile```
+  ```pcl::io::savePLYFile```
+  ```pcl::io::saveOBJFile```
+  e.g.
+```pcl::io::savePCDFile("output_cloud.pcd", *cloud);```
+6. Coordinate Transformation
+  1. Define transformation
+```
+Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+transform.translation() = translation;
+transform.rotate(rotation);
+```
+  B. Perform transformation
+```pcl::transformPointCloud(*cloud_original, *cloud_transformed, transform);```
