@@ -425,3 +425,61 @@ transform.rotate(rotation);
 ```
   B. Perform transformation
 ```pcl::transformPointCloud(*cloud_original, *cloud_transformed, transform);```
+
+
+## Week4 Understanding [UniMVSNet](https://github.com/prstrive/UniMVSNet)
+### Plane sweep algorithm in multi-view stereo
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/13181d0c-7dc5-4efc-a965-b6315d9168fd)
+- How it works:
+  1. Select a Reference Image: Choose one image from the set as the reference image.
+  2. Create a Depth Map: Initialise a depth value for each pixel in the reference image.
+  3. Plane Sweeping: For each of these depth values, find corresponding pixels in the other images and project them back onto the reference image. This step is often simplified through epipolar geometry.
+  4. Compute Cost: For each depth value, calculate a cost metric to measure how similar the projected pixels are to the pixels in the reference image. Similarity metrics like SSD (Sum of Squared Differences) or NCC (Normalized Cross-Correlation) can be used.
+  5. Select Best Depth: For each pixel in the reference image, select the depth that minimizes the cost (or maximizes the similarity).
+  6. Generate 3D Model: Use the best depth values to back-project and generate a 3D model of the scene.
+- Inputs:
+  1. Multiple images (at least two), usually taken from different viewpoints.
+  2. Camera intrinsics and extrinsics for projecting and back-projecting pixels to 3D points.
+- Outputs:
+  1. Depth map of the reference image.
+
+### MVSNet
+MVSNet is a direct extension of the plane sweep algorithm with:
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/70099e7b-3cce-4f4d-a976-74008d941cc9)
+  1. An added deep feature extraction module
+  2. Using learnt features to formulate cost  (construct a cost volume then regularise it to a probability volume to reduce the effect of noise)
+  3. Soft argmin to generate depth map using P as weight over all hypothesised depth
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/3750f9ae-5183-4355-b4e2-08cb6a3fe354)
+  4. Loss (refined depth considers the context)
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/b5af00db-d022-4463-88e0-6578d084ce51)
+
+
+### UniMVSNet
+The regression nature of the original MVSNet  requires the learning of learn a complex combination of weights which is non-trivial and tends to over-fit. The classification of  R-MVSNet finds the best depth hypothesis which ensures the robustness of MVS yet incapable predict depth directly. UniMVSNet combines the regression and classification approach in MVSNet and its variants. 
+1. Classification: 
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/aa6e27ce-c169-4b38-bd5c-26abca68b6a8)
+
+2. Regression: 
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/6e7d4a09-64d8-40f8-8e41-6cd063131efa)
+
+3. Unification: classify to find the most likely hypothesis then regress to find its weight (done simultaneously as follows)
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/4b1fcd90-e793-4351-9faa-5983428fe9d2)
+
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/d9e0214c-6a4e-487c-b1b0-4b737c4bd0f7)
+
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/46a09c45-5656-413d-b9ad-3cfb94555007)
+
+### Running UniMVSNet
+1. Download Testing data DTU testing data and unzip it.
+2. Download the trained model unimvsnet_dtu
+3. Fusibile installation:  Download fusible,  cmake. , make
+4. Point generation. To recreate the results from our paper, you need to specify the datapath to <your dtu_testing path>, outdir to <your output save path>, resume to <your model path>, and fusibile_exe_path to <your fusibile path>/fusibile in shell file ./script/dtu_test.sh first and then run:
+```bash ./scripts/dtu_test.sh```
+5. Result
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/acab31dc-4e53-4cfa-8f4c-3f022fb8854b)
+
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/bdd6b295-365e-45ca-8062-4e0da56fc78f)
+
+A simple script for visualisation pfm
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/06e77bf0-e358-4809-b18f-eb8e39bfe484)
+
