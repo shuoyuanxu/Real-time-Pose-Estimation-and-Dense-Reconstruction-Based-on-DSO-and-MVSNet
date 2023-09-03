@@ -327,6 +327,28 @@ class Model:
             gipuma_filter(testlist, self.args.outdir, self.args.prob_threshold, self.args.disp_threshold, self.args.num_consistent,
                           self.args.fusibile_exe_path)
 
+    def test_ros(self, imgs, proj_matrices_ms, depth_min, depth_max):
+        self.network.eval()
+
+        depth_interval = (depth_max - depth_min) / self.args.numdepth
+        depth_values = np.arange(depth_min, depth_max, depth_interval, dtype=np.float32)
+
+        sample = {"imgs": torch.from_numpy(np.expand_dims(imgs, axis=0)),
+                  "proj_matrices": proj_matrices_ms,
+                  "depth_values": torch.from_numpy(np.expand_dims(depth_values, axis=0))}
+        # print(sample)
+        sample_cuda = tocuda(sample)
+        start_time = time.time()
+        # get output
+        outputs = self.network(sample_cuda["imgs"], sample_cuda["proj_matrices"], sample_cuda["depth_values"])
+        end_time = time.time()
+        outputs = tensor2numpy(outputs)
+        del sample_cuda
+        imgs = sample["imgs"].numpy()
+        print('Time:{} Res:{}'.format(end_time - start_time, imgs[0].shape))
+        torch.cuda.empty_cache()
+        return outputs
+
     @torch.no_grad()
     def visualization(self):
 
