@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package>
+  <name>unimvsnet</name>
+  <version>1.0.0</version>
+  <description>
+
+    ROS Wrapper DSO.
+
+  </description>
+
+  <author>Shuoyuan Xu</author>
+  <license>see http://vision.in.tum.de/dso</license>
+  <maintainer email="shuoyxu@gmail.com"> Shuoyuan Xu </maintainer>
+  <!-- <review status="unreviewed" notes=""/> -->
+  <url>http://vision.in.tum.de/dso</url>
+
+  <buildtool_depend>catkin</buildtool_depend> 
+  <build_depend>roscpp</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>message_generation</build_depend>
+  
+  <run_depend>roscpp</run_depend>
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>message_runtime</run_depend>
+  
+
+</package>

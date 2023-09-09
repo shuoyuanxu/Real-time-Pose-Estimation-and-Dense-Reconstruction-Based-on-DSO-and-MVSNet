@@ -2,7 +2,7 @@
 # license removed for brevity
 import os, cv2, time, math
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 
 import rospy
@@ -30,7 +30,7 @@ def scale_mvs_input(img, intrinsics, max_w, max_h, base=32):
         scale = 1.0 * max_h / h
         if scale * w > max_w:
             scale = 1.0 * max_w / w
-        new_w, new_h = scale * w // base * base, scale * h // base * base
+        new_w, new_h = scale * w // base * base, scale * h // base * base  
     else:
         new_w, new_h = 1.0 * w // base * base, 1.0 * h // base * base
 
