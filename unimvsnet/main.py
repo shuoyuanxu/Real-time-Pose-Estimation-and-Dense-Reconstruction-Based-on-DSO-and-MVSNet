@@ -6,7 +6,8 @@ parser = argparse.ArgumentParser(description="UniMVSNet args")
 # network
 parser.add_argument("--fea_mode", type=str, default="fpn", choices=["fpn", "unet"])
 parser.add_argument("--agg_mode", type=str, default="variance", choices=["variance", "adaptive"])
-parser.add_argument("--depth_mode", type=str, default="regression", choices=["regression", "classification", "unification"])
+parser.add_argument("--depth_mode", type=str, default="regression",
+                    choices=["regression", "classification", "unification"])
 parser.add_argument("--ndepths", type=int, nargs='+', default=[48, 32, 8])
 parser.add_argument("--interval_ratio", type=float, nargs='+', default=[4, 2, 1])
 
@@ -34,7 +35,8 @@ parser.add_argument('--milestones', type=float, nargs='+', default=[10, 12, 14],
 parser.add_argument('--lr_decay', type=float, default=0.5, help='lr decay at every milestone')
 parser.add_argument('--resume', type=str, help='path to the resume model')
 parser.add_argument('--log_dir', type=str, help='path to the log dir')
-parser.add_argument('--dlossw', type=float, nargs='+', default=[0.5, 1.0, 2.0], help='depth loss weight for different stage')
+parser.add_argument('--dlossw', type=float, nargs='+', default=[0.5, 1.0, 2.0],
+                    help='depth loss weight for different stage')
 parser.add_argument('--eval_freq', type=int, default=1, help='eval freq')
 parser.add_argument('--summary_freq', type=int, default=50, help='print and summary frequency')
 parser.add_argument("--val", action="store_true")
@@ -51,10 +53,12 @@ parser.add_argument('--max_w', type=int, default=1152, help='testing max w')
 parser.add_argument('--fix_res', action='store_true', help='scene all using same res')
 parser.add_argument('--num_worker', type=int, default=4, help='depth_filer worker')
 parser.add_argument('--save_freq', type=int, default=20, help='save freq of local pcd')
-parser.add_argument('--filter_method', type=str, default='gipuma', choices=["gipuma", "pcd", "dypcd"], help="filter method")
+parser.add_argument('--filter_method', type=str, default='gipuma', choices=["gipuma", "pcd", "dypcd"],
+                    help="filter method")
 parser.add_argument('--display', action='store_true', help='display depth images and masks')
 # pcd or dypcd
-parser.add_argument('--conf', type=float, nargs='+', default=[0.1, 0.15, 0.9], help='prob confidence, for pcd and dypcd')
+parser.add_argument('--conf', type=float, nargs='+', default=[0.1, 0.15, 0.9],
+                    help='prob confidence, for pcd and dypcd')
 parser.add_argument('--thres_view', type=int, default=5, help='threshold of num view, only for pcd')
 # dypcd
 parser.add_argument('--dist_base', type=float, default=1 / 4)
@@ -69,7 +73,6 @@ parser.add_argument('--num_consistent', type=float, default='3')
 parser.add_argument("--vis", action="store_true")
 parser.add_argument('--depth_path', type=str)
 parser.add_argument('--depth_img_save_dir', type=str, default="./")
-
 
 # device and distributed
 parser.add_argument("--no_cuda", action="store_true")

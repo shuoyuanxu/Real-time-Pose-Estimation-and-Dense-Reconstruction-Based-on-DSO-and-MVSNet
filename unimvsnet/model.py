@@ -35,11 +35,11 @@ class Model:
             self.network = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self.network)
 
         if not (self.args.val or self.args.test):
-
             self.optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.network.parameters()), lr=args.lr,
                                               weight_decay=args.wd)
             self.lr_scheduler = get_schedular(self.optimizer, self.args)
-            self.train_loader, self.train_sampler = get_loader(args, args.datapath, args.trainlist, args.nviews, "train")
+            self.train_loader, self.train_sampler = get_loader(args, args.datapath, args.trainlist, args.nviews,
+                                                               "train")
 
         if not self.args.test:
             self.loss_func = mvs_loss
@@ -93,7 +93,8 @@ class Model:
         self.network.train()
 
         if is_main_process():
-            pwidgets = [progressbar.Percentage(), " ", progressbar.Counter(format='%(value)02d/%(max_value)d'), " ", progressbar.Bar(), " ",
+            pwidgets = [progressbar.Percentage(), " ", progressbar.Counter(format='%(value)02d/%(max_value)d'), " ",
+                        progressbar.Bar(), " ",
                         progressbar.Timer(), ",", progressbar.ETA(), ",", progressbar.Variable('LR', width=1), ",",
                         progressbar.Variable('Loss', width=1), ",", progressbar.Variable('Th2', width=1), ",",
                         progressbar.Variable('Th4', width=1), ",", progressbar.Variable('Th8', width=1)]
@@ -151,9 +152,12 @@ class Model:
 
                 pbar.update(batch, LR=self.optimizer.param_groups[0]['lr'],
                             Loss="{:.3f}|{:.3f}".format(scalar_outputs["loss"], avg_scalars.avg_data["loss"]),
-                            Th2="{:.3f}|{:.3f}".format(scalar_outputs["thres2mm_error"], avg_scalars.avg_data["thres2mm_error"]),
-                            Th4="{:.3f}|{:.3f}".format(scalar_outputs["thres4mm_error"], avg_scalars.avg_data["thres4mm_error"]),
-                            Th8="{:.3f}|{:.3f}".format(scalar_outputs["thres8mm_error"], avg_scalars.avg_data["thres8mm_error"]))
+                            Th2="{:.3f}|{:.3f}".format(scalar_outputs["thres2mm_error"],
+                                                       avg_scalars.avg_data["thres2mm_error"]),
+                            Th4="{:.3f}|{:.3f}".format(scalar_outputs["thres4mm_error"],
+                                                       avg_scalars.avg_data["thres4mm_error"]),
+                            Th8="{:.3f}|{:.3f}".format(scalar_outputs["thres8mm_error"],
+                                                       avg_scalars.avg_data["thres8mm_error"]))
 
         if is_main_process():
             pbar.finish()
@@ -163,7 +167,8 @@ class Model:
         self.network.eval()
 
         if is_main_process():
-            pwidgets = [progressbar.Percentage(), " ", progressbar.Counter(format='%(value)02d/%(max_value)d'), " ", progressbar.Bar(), " ",
+            pwidgets = [progressbar.Percentage(), " ", progressbar.Counter(format='%(value)02d/%(max_value)d'), " ",
+                        progressbar.Bar(), " ",
                         progressbar.Timer(), ",", progressbar.ETA(), ",", progressbar.Variable('Loss', width=1), ",",
                         progressbar.Variable('Th2', width=1), ",", progressbar.Variable('Th4', width=1), ",",
                         progressbar.Variable('Th8', width=1)]
@@ -214,9 +219,12 @@ class Model:
 
                 pbar.update(batch,
                             Loss="{:.3f}|{:.3f}".format(scalar_outputs["loss"], avg_scalars.avg_data["loss"]),
-                            Th2="{:.3f}|{:.3f}".format(scalar_outputs["thres2mm_error"], avg_scalars.avg_data["thres2mm_error"]),
-                            Th4="{:.3f}|{:.3f}".format(scalar_outputs["thres4mm_error"], avg_scalars.avg_data["thres4mm_error"]),
-                            Th8="{:.3f}|{:.3f}".format(scalar_outputs["thres8mm_error"], avg_scalars.avg_data["thres8mm_error"]))
+                            Th2="{:.3f}|{:.3f}".format(scalar_outputs["thres2mm_error"],
+                                                       avg_scalars.avg_data["thres2mm_error"]),
+                            Th4="{:.3f}|{:.3f}".format(scalar_outputs["thres4mm_error"],
+                                                       avg_scalars.avg_data["thres4mm_error"]),
+                            Th8="{:.3f}|{:.3f}".format(scalar_outputs["thres8mm_error"],
+                                                       avg_scalars.avg_data["thres8mm_error"]))
 
         if is_main_process():
             pbar.finish()
@@ -259,7 +267,8 @@ class Model:
                 filenames = sample["filename"]
                 cams = sample["proj_matrices"]["stage{}".format(num_stage)].numpy()
                 imgs = sample["imgs"].numpy()
-                print('Iter {}/{}, Time:{} Res:{}'.format(batch_idx, len(TestImgLoader), end_time - start_time, imgs[0].shape))
+                print('Iter {}/{}, Time:{} Res:{}'.format(batch_idx, len(TestImgLoader), end_time - start_time,
+                                                          imgs[0].shape))
 
                 # save depth maps and confidence maps
                 for filename, cam, img, depth_est, depth2, depth1, photometric_confidence, pc2, pc1 \
@@ -269,7 +278,6 @@ class Model:
                                outputs["photometric_confidence"],
                                outputs["stage2"]["photometric_confidence"],
                                outputs["stage1"]["photometric_confidence"]):
-
                     depth_filename2 = os.path.join(self.args.outdir, filename.format('depth_est', '_stage2.pfm'))
                     depth_filename1 = os.path.join(self.args.outdir, filename.format('depth_est', '_stage1.pfm'))
 
@@ -324,25 +332,27 @@ class Model:
         elif self.args.filter_method == "dypcd":
             dypcd_filter(self.args, testlist, self.args.num_worker)
         else:
-            gipuma_filter(testlist, self.args.outdir, self.args.prob_threshold, self.args.disp_threshold, self.args.num_consistent,
+            gipuma_filter(testlist, self.args.outdir, self.args.prob_threshold, self.args.disp_threshold,
+                          self.args.num_consistent,
                           self.args.fusibile_exe_path)
 
     def test_ros(self, imgs, proj_matrices_ms, depth_min, depth_max):
         self.network.eval()
-
+        # initial depth generation (pls refer to plane sweep algorithm)
         depth_interval = (depth_max - depth_min) / self.args.numdepth
         depth_values = np.arange(depth_min, depth_max, depth_interval, dtype=np.float32)
-
+        # preparing for network input
         sample = {"imgs": torch.from_numpy(np.expand_dims(imgs, axis=0)),
                   "proj_matrices": proj_matrices_ms,
                   "depth_values": torch.from_numpy(np.expand_dims(depth_values, axis=0))}
-        # print(sample)
+        # to cuda format
         sample_cuda = tocuda(sample)
         start_time = time.time()
         # get output
         outputs = self.network(sample_cuda["imgs"], sample_cuda["proj_matrices"], sample_cuda["depth_values"])
         end_time = time.time()
         outputs = tensor2numpy(outputs)
+        # Deletes the sample_cuda dictionary to free up GPU memory.
         del sample_cuda
         imgs = sample["imgs"].numpy()
         print('Time:{} Res:{}'.format(end_time - start_time, imgs[0].shape))
@@ -368,4 +378,3 @@ class Model:
         im.save(os.path.join(save_dir, "depth.png"))
 
         print("Successfully visualize!")
-
