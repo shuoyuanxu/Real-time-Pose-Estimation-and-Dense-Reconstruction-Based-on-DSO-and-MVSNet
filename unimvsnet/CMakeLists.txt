@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
  cv_bridge)
  
 add_message_files(FILES
- dso_ros.msg)
+ Depthmsg.msg)
  
 generate_messages(DEPENDENCIES 
  sensor_msgs
