@@ -335,7 +335,7 @@ class Model:
             gipuma_filter(testlist, self.args.outdir, self.args.prob_threshold, self.args.disp_threshold,
                           self.args.num_consistent,
                           self.args.fusibile_exe_path)
-
+    @torch.no_grad()
     def test_ros(self, imgs, proj_matrices_ms, depth_min, depth_max):
         self.network.eval()
         # initial depth generation (pls refer to plane sweep algorithm)

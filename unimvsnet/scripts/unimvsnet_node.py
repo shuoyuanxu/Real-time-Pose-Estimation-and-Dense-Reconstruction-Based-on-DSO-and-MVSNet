@@ -143,7 +143,6 @@ setting_maxFrames = 0
 
 # Callback function for gathering msgs from ros subscriber
 def SlidingWindowsCallback(slidingWindowsMsg_input):
-    print('IFintocallback')
     # some global variables
     global depth_min, depth_max, Windows_id
     # obtain the dimension of images
