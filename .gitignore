@@ -181,3 +181,4 @@ dso/build/.cmake/api/v1/reply/index-2023-09-16T21-46-18-0616.json
 dso/build/.cmake/api/v1/reply/target-dso_dataset-735343e77e1a5023c5d8.json
 dso/build/.cmake/api/v1/reply/target-dso-94c46e2d80fe9dbce986.json
 dso/build/bin/logs/time.txt
+dso/CMakeLists.txt
