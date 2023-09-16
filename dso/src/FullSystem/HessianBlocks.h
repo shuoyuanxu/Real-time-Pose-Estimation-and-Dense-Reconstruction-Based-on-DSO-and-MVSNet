@@ -31,7 +31,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/mat.hpp>
 
- 
+
 #include <iostream>
 #include <fstream>
 #include "util/NumType.h"
@@ -118,7 +118,7 @@ struct FrameHessian
 	// constant info & pre-calculated values
 	//DepthImageWrap* frame;
 	FrameShell* shell;
-
+	
 	cv::Mat img_bgr;  // save img in color
 	Eigen::Vector3f* dI;				 // trace, fine tracking. Used for direction select (not for gradient histograms etc.)
 	Eigen::Vector3f* dIp[PYR_LEVELS];	 // coarse tracking / coarse initializer. NAN in [0] only.

@@ -493,7 +493,6 @@ int main( int argc, char** argv )
 
 
 
-
             delete img;
 
             if(fullSystem->initFailed || setting_fullResetRequested)

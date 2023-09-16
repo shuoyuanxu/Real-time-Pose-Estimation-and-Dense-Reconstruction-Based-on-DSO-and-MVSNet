@@ -799,7 +799,7 @@ void FullSystem::flagPointsForRemoval()
 }
 
 
-void FullSystem::addActiveFrame(ImageAndExposure* image, cv::Mat img_bgr, int id )
+void FullSystem::addActiveFrame( ImageAndExposure* image, cv::Mat img_bgr, int id )
 {
 
     if(isLost) return;
@@ -1194,49 +1194,49 @@ void FullSystem::makeKeyFrame( FrameHessian* fh)
 			{marginalizeFrame(frameHessians[i]); i=0;}
 
 
-	// =========================== Push Frames to queue msg =========================
-	// step1: compute midpoint of frames (select the frame that is closest to the midpoint for depth estimation)
-	if(frameHessians.size() != setting_maxFrames){
-		printLogLine();printf("frameHessians.size() !=%d\n",setting_maxFrames);return;
-	}
-	double x_mid=0, y_mid=0, z_mid=0;
-	for(unsigned int i=0;i<frameHessians.size(); i++){
-		x_mid+=frameHessians[i]->shell->camToWorld.matrix()(0,3);
-		y_mid+=frameHessians[i]->shell->camToWorld.matrix()(1,3);
-		z_mid+=frameHessians[i]->shell->camToWorld.matrix()(2,3);
-	}
-	x_mid/=setting_maxFrames;y_mid=setting_maxFrames;z_mid=setting_maxFrames;
-	// step2: compute distance of frames to midpoint and get min reference index
-	double min_distance=1.0e100; int ref_index=0;
-	for(unsigned int i=0;i<frameHessians.size();i++){
-		double xd = x_mid-frameHessians[i]->shell->camToWorld.matrix()(0,3);
-		double yd = y_mid-frameHessians[i]->shell->camToWorld.matrix()(1,3);
-		double zd = z_mid-frameHessians[i]->shell->camToWorld.matrix()(2,3);
-		double distance = xd*xd+yd*yd+zd*zd;
-		if(distance < min_distance){
-			min_distance = distance;
-			ref_index = i;
+		// =========================== Push Frames to queue msg =========================
+		// step1: compute midpoint of frames (select the frame that is closest to the midpoint for depth estimation)
+		if(frameHessians.size() != setting_maxFrames){
+			printLogLine();printf("frameHessians.size() !=%d\n",setting_maxFrames);return;
 		}
-	}
-	printf("ref_index = %d;\n",ref_index); // print the index of the selected frame
-	// step3: push the selected frame to the front of the queue
-	std::vector<OutputFrame*> vofp(setting_maxFrames);
-	std::vector<OutputFrame> vof;
+		double x_mid=0, y_mid=0, z_mid=0;
+		for(unsigned int i=0;i<frameHessians.size(); i++){
+			x_mid+=frameHessians[i]->shell->camToWorld.matrix()(0,3);
+			y_mid+=frameHessians[i]->shell->camToWorld.matrix()(1,3);
+			z_mid+=frameHessians[i]->shell->camToWorld.matrix()(2,3);
+		}
+		x_mid/=setting_maxFrames;y_mid/=setting_maxFrames;z_mid/=setting_maxFrames;
+		// step2: compute distance of frames to midpoint and get min reference index
+		double min_distance=1.0e+100; int ref_index=0;
+		for(unsigned int i=0;i<frameHessians.size();i++){
+			double xd = x_mid-frameHessians[i]->shell->camToWorld.matrix()(0,3);
+			double yd = y_mid-frameHessians[i]->shell->camToWorld.matrix()(1,3);
+			double zd = z_mid-frameHessians[i]->shell->camToWorld.matrix()(2,3);
+			double distance = xd*xd+yd*yd+zd*zd;
+			if(distance < min_distance){
+				min_distance = distance;
+				ref_index = i;
+			}
+		}
+		printf("ref_index = %d;\n",ref_index); // print the index of the selected frame
+		// step3: push the selected frame to the front of the queue
+		std::vector<OutputFrame*> vofp(setting_maxFrames);
+		std::vector<OutputFrame> vof;
 
-	for(unsigned int i=0;i<frameHessians.size();i++){
-		unsigned int index;
-		if(i==ref_index) index=0;
-		if(i<ref_index) index=i+1;
-		if(i>ref_index) index=i;
-		OutputFrame *of = new OutputFrame();
+		for(unsigned int i=0;i<frameHessians.size();i++){
+			unsigned int index;
+			if(i==ref_index) index=0;
+			if(i<ref_index) index=i+1;
+			if(i>ref_index) index=i;
+			OutputFrame *of = new OutputFrame();
 
-		of->image = frameHessians[i]->img_bgr;
-		of->camToWorld = frameHessians[i]->shell->camToWorld;
-		vofp[index] = of;
-	}
-	for(auto ofp :vofp) vof.push_back(*ofp);
-	slidingWindows_Frames.push_back(vof);
-
+			of->image = frameHessians[i]->img_bgr;
+			of->camToWorld = frameHessians[i]->shell->camToWorld;
+			vofp[index] = of;
+		}
+		for(auto ofp :vofp) vof.push_back(*ofp);
+		slidingWindows_Frames.push_back(vof);
+		
 	printLogLine();
     //printEigenValLine();
 

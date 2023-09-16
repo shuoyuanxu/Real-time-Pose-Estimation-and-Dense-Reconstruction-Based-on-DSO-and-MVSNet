@@ -24,7 +24,6 @@
 
 
 #include "IOWrapper/ImageRW.h"
- #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 
@@ -35,7 +34,7 @@ namespace IOWrap
 {
 MinimalImageB* readImageBW_8U(std::string filename)
 {
-	cv::Mat m = cv::imread(filename, cv::IMREAD_GRAYSCALE);
+	cv::Mat m = cv::imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
 	if(m.rows*m.cols==0)
 	{
 		printf("cv::imread could not read image %s! this may segfault. \n", filename.c_str());
@@ -53,7 +52,7 @@ MinimalImageB* readImageBW_8U(std::string filename)
 
 MinimalImageB3* readImageRGB_8U(std::string filename)
 {
-	cv::Mat m = cv::imread(filename, cv::IMREAD_COLOR);
+	cv::Mat m = cv::imread(filename, CV_LOAD_IMAGE_COLOR);
 	if(m.rows*m.cols==0)
 	{
 		printf("cv::imread could not read image %s! this may segfault. \n", filename.c_str());
@@ -71,7 +70,7 @@ MinimalImageB3* readImageRGB_8U(std::string filename)
 
 MinimalImage<unsigned short>* readImageBW_16U(std::string filename)
 {
-	cv::Mat m = cv::imread(filename, cv::IMREAD_UNCHANGED);
+	cv::Mat m = cv::imread(filename, CV_LOAD_IMAGE_UNCHANGED);
 	if(m.rows*m.cols==0)
 	{
 		printf("cv::imread could not read image %s! this may segfault. \n", filename.c_str());
@@ -89,7 +88,7 @@ MinimalImage<unsigned short>* readImageBW_16U(std::string filename)
 
 MinimalImageB* readStreamBW_8U(char* data, int numBytes)
 {
-	cv::Mat m = cv::imdecode(cv::Mat(numBytes,1,CV_8U, data), cv::IMREAD_GRAYSCALE);
+	cv::Mat m = cv::imdecode(cv::Mat(numBytes,1,CV_8U, data), CV_LOAD_IMAGE_GRAYSCALE);
 	if(m.rows*m.cols==0)
 	{
 		printf("cv::imdecode could not read stream (%d bytes)! this may segfault. \n", numBytes);

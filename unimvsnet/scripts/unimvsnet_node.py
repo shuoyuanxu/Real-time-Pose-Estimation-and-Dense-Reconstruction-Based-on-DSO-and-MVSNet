@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # license removed for brevity
 import os, cv2, time, math
 import sys
@@ -9,7 +9,7 @@ import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from dso_ros.msg import SlidingWindowsMsg
-from unimvsnet.msg import DepthMsg
+from unimvsnet.msg import Depthmsg
 
 import argparse
 from model import Model
@@ -19,10 +19,12 @@ from torchvision import transforms
 import numpy as np
 
 # Reading paras from roslaunch file
-slidingWindowsQueueSize = rospy.get_param("slidingWindowsQueueSize")
-depthInfoQueueSize = rospy.get_param("depthInfoQueueSize")
-setting_maxFrames = rospy.get_param("setting_maxFrames")
-
+# slidingWindowsQueueSize = rospy.get_param("slidingWindowsQueueSize")
+# depthInfoQueueSize = rospy.get_param("depthInfoQueueSize")
+# setting_maxFrames = rospy.get_param("setting_maxFrames")
+slidingWindowsQueueSize = 10
+depthInfoQueueSize = 10
+setting_maxFrames = 7
 
 # Resize images and corresponding intrinsic
 def scale_mvs_input(img, intrinsics, max_w, max_h, base=32):
@@ -93,7 +95,7 @@ parser.add_argument("--sync_bn", action="store_true")
 parser.add_argument("--blendedmvs_finetune", action="store_true")
 
 # testing (max_frame modified)
-parser.add_argument("--test", action="store_true")
+parser.add_argument("--test", action="store_true", default=True)
 parser.add_argument('--testpath_single_scene', help='testing data path for single scene')
 parser.add_argument('--outdir', default='./outputs', help='output dir')
 parser.add_argument('--num_view', type=int, default=setting_maxFrames, help='num of view')
@@ -141,6 +143,7 @@ setting_maxFrames = 0
 
 # Callback function for gathering msgs from ros subscriber
 def SlidingWindowsCallback(slidingWindowsMsg_input):
+    print('IFintocallback')
     # some global variables
     global depth_min, depth_max, Windows_id
     # obtain the dimension of images
@@ -219,7 +222,7 @@ def SlidingWindowsCallback(slidingWindowsMsg_input):
 
     # formulate Depthmsg using output then publish it
     # depth map and confidence map needs to be converted to ros format and resize to the original image size
-    depthmsg = DepthMsg()
+    depthmsg = Depthmsg()
     ref_msg = Keyframemsg_list[0]
     depthmsg.image = ref_msg["image"]
     depthmsg.camToWorld = ref_msg["camToWorld"]
@@ -241,6 +244,6 @@ if __name__ == '__main__':
     rospy.init_node('unimvsnet_node', anonymous=True)
     sub_slidingWindows = rospy.Subscriber('SlidingWindows', SlidingWindowsMsg, SlidingWindowsCallback,
                                           queue_size=slidingWindowsQueueSize)
-    pub_depth_info = rospy.Publisher('depth_info', DepthMsg, queue_size=depthInfoQueueSize)
+    pub_depth_info = rospy.Publisher('depth_info', Depthmsg, queue_size=depthInfoQueueSize)
     print("wait for msg")
     rospy.spin()

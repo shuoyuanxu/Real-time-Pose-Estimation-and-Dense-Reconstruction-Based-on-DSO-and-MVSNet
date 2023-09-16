@@ -255,7 +255,7 @@ int main( int argc, char** argv )
 	nh.param<int>("setting_minFrames", setting_minFrames, 5);
 	nh.param<int>("setting_maxFrames", setting_maxFrames, 7);
 	nh.param<int>("setting_maxOptIterations", setting_maxOptIterations, 10);
-	nh.param<int>("setting_minOptIterations", setting_minOptIterations, 5);
+	nh.param<int>("setting_minOptIterations", setting_minOptIterations, 1);
 	nh.param<bool>("setting_logStuff", setting_logStuff, false);
 	nh.param<float>("setting_kfGlobalWeight", setting_kfGlobalWeight, 1);
 	nh.param<bool>("disableDisplay_DSO", disableAllDisplay, false);

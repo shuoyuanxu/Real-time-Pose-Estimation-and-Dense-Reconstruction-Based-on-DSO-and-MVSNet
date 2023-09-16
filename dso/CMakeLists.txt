@@ -3,7 +3,7 @@ SET(PROJECT_NAME DSO)
 PROJECT(${PROJECT_NAME})
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
-set( CMAKE_CXX_FLAGS "-std=c++11" )
+
 
 set(BUILD_TYPE Release)
 #set(BUILD_TYPE RelWithDebInfo)
@@ -24,10 +24,10 @@ find_package(OpenCV QUIET)
 
 # flags
 add_definitions("-DENABLE_SSE")
-#set(CMAKE_CXX_FLAGS
-#   "${SSE_FLAGS} -O3 -g -std=c++0x -march=native"
+set(CMAKE_CXX_FLAGS
+   "${SSE_FLAGS} -O3 -g -std=c++0x -march=native"
 #   "${SSE_FLAGS} -O3 -g -std=c++0x -fno-omit-frame-pointer"
-#)
+)
 
 if (MSVC)
      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
