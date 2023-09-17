@@ -1,145 +1,86 @@
-PointCloudMapping::PointCloudMapping(double resolution_, float prob_threshold_)
+#include <ros/ros.h>
+#include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/Image.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
+#include <time.h>
+
+#include "cv_bridge/cv_bridge.h"
+#include "unimvsnet/DepthMsg.h"
+#include "pointcloudmapping.h"
+
+ros::Subscriber imgSub;
+ros::Publisher pointCloudpub;
+PointCloudMapping* pointcloud_mapping;
+time_t start_time=0,end_time=0; 
+
+//获取对应的数据，并使用点云融合模块中实现的功能进行建图
+void vidCb(const unimvsnet::DepthMsg DepthMsg)
 {
-    set_resolution(resolution_);
-    this->prob_threshold = prob_threshold_;
-    
-    globalMap = std::make_shared< PointCloudT >();
-    viewerThread = std::make_shared<std::thread>( std::bind(&PointCloudMapping::update_globalMap, this ) );
-}
-
-void PointCloudMapping::set_resolution(double resolution_){
-    resolution = resolution_;
-    voxel.setLeafSize( resolution_, resolution_, resolution_);
-}
-
-void PointCloudMapping::shutdown()
-{
-    {
-        std::unique_lock<std::mutex> lck(shutDownMutex);
-        shutDownFlag = true;
-        keyFrameUpdated.notify_one();
-    }
-    viewerThread->join();
-}
-
-
-void PointCloudMapping::insertKeyFrame(cv::Mat&  intrinsic, cv::Mat& extrinsic, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence)
-{
-    std::unique_lock<std::mutex> lck(keyframeMutex);
-
-    intrinsics.push_back( intrinsic.clone() );
-    extrinsics.push_back( extrinsic.clone() );
-    colorImgs.push_back( color.clone() );
-    depthImgs.push_back( depth.clone() );
-    confidenceImgs.push_back( confidence.clone() );
-
-    keyFrameUpdated.notify_one();
-}
-
-pcl::PointCloud<PointCloudMapping::PointT>::Ptr PointCloudMapping::generatePointCloud(\
-cv::Mat& intrinsics, cv::Mat& extrinsics, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence)
-{
-    PointCloudT::Ptr tmp_pc( new PointCloudT() );
-
-    // point cloud is null ptr
-    double fx = intrinsics.at<double>(0,0);
-    double fy = intrinsics.at<double>(1,1);
-    double cx = intrinsics.at<double>(0,2);
-    double cy = intrinsics.at<double>(1,2);
-    
-    for ( int m=0; m<depth.rows; m+=3 )
-    {
-        for ( int n=0; n<depth.cols; n+=3 )
-        {
-            if(confidence.ptr<float>(m)[n] < prob_threshold){
-                continue;
-            }
-
-            float d = depth.ptr<float>(m)[n];
-            //if( d < 0 || d > 15 ) continue;
-            PointT p;
-            p.z = d;
-            p.x = ( n - cx) * p.z / fx;
-            p.y = ( m - cy) * p.z / fy;
-
-            p.b = color.ptr<uchar>(m)[n*3];
-            p.g = color.ptr<uchar>(m)[n*3+1];
-            p.r = color.ptr<uchar>(m)[n*3+2];
-
-            tmp_pc->points.push_back(p);
-        }
-    }
-
-    static Eigen::Matrix4f T_delta;
-
-    Eigen::Matrix4f T;
-    for(int i=0; i<4; i++)
-        for(int j=0; j<4; j++)
-            T(i,j) = extrinsics.at<double>(i,j);
-
-    PointCloudT::Ptr cloud(new PointCloudT);
-    pcl::transformPointCloud( *tmp_pc, *cloud, T.matrix());
-    cloud->is_dense = false;
-    
-    //自适应体素滤波
-    //double resolution_tmp = cv::mean(depth).val[0]/ ((fx<fy?fx:fy) * 20);
-    //set_resolution( resolution_tmp < resolution ? resolution_tmp : resolution);
-    
-    cout << "generate point cloud for kf size=" << cloud->points.size() << endl;
-    return cloud;
-}
-
-
-void PointCloudMapping::update_globalMap()
-{
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("viewer"));
-    viewer->setBackgroundColor(0,0,0);
-
-    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(globalMap);
-    viewer->addPointCloud<pcl::PointXYZRGBA> (globalMap, rgb, "globalMap");
-    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE,\
-    1, "globalMap");
-
-    while(1)
-    {
-        {
-            std::unique_lock<std::mutex> lck_shutdown( shutDownMutex );
-            if (shutDownFlag)
-            {
-                break;
-            }
-        }
-        {
-            std::unique_lock<std::mutex> lck_keyframeUpdated( keyFrameUpdateMutex );
-            keyFrameUpdated.wait( lck_keyframeUpdated );
-        }
-
-        // keyframe is updated
-        size_t N=0;
-        {
-            std::unique_lock<std::mutex> lck( keyframeMutex );
-            N = depthImgs.size();
-        }
-
-        for ( size_t i=lastKeyframeSize; i<N ; i++ )
-        {
-            PointCloudT::Ptr p = generatePointCloud( intrinsics[i], extrinsics[i], colorImgs[i], depthImgs[i], confidenceImgs[i]);
-            *globalMap += *p;
-        }
+        //抛弃前5帧数据
+        static int count = 0;
+        count++;
+        if(count < 5) return;
         
-        PointCloudT::Ptr tmp(new PointCloudT());
-        voxel.setInputCloud( globalMap );
-        voxel.filter( *tmp );
-        globalMap->swap( *tmp );
-
+        cv_bridge::CvImagePtr img = cv_bridge::toCvCopy(DepthMsg.image, sensor_msgs::image_encodings::BGR8);
+        assert(img->image.type() == CV_8UC3);
+        assert(img->image.channels() == 3);
         
-        viewer->updatePointCloud(globalMap, "globalMap");
-        viewer->spinOnce(0.3);
-        //viewer.showCloud( globalMap );
-
-        cout << "show global map, size=" << globalMap->points.size() << endl;
+        cv_bridge::CvImagePtr depth = cv_bridge::toCvCopy(DepthMsg.depth, sensor_msgs::image_encodings::TYPE_32FC1);
+        assert(depth->image.type() == CV_32F);
+        assert(depth->image.channels() == 1);
         
-        lastKeyframeSize = N;
-    }
-    
+        cv_bridge::CvImagePtr confidence = cv_bridge::toCvCopy(DepthMsg.confidence, sensor_msgs::image_encodings::TYPE_32FC1);
+        assert(confidence->image.type() == CV_32F);
+        assert(confidence->image.channels() == 1);
+
+        cv::Mat intrinsic = (cv::Mat_<double>(3,3) << DepthMsg.Intrinsics[0], 0, DepthMsg.Intrinsics[2], \
+                                                      0, DepthMsg.Intrinsics[1], DepthMsg.Intrinsics[3], \
+                                                      0, 0, 1);
+        cv::Mat extrinsic = (cv::Mat_<double>(4,4) << DepthMsg.camToWorld[0], DepthMsg.camToWorld[1], DepthMsg.camToWorld[2], DepthMsg.camToWorld[3],\
+                                                      DepthMsg.camToWorld[4], DepthMsg.camToWorld[5], DepthMsg.camToWorld[6], DepthMsg.camToWorld[7],\
+                                                      DepthMsg.camToWorld[8], DepthMsg.camToWorld[9], DepthMsg.camToWorld[10], DepthMsg.camToWorld[11],\
+                                                      DepthMsg.camToWorld[12], DepthMsg.camToWorld[13], DepthMsg.camToWorld[14], DepthMsg.camToWorld[15]);
+        
+        pointcloud_mapping->insertKeyFrame(intrinsic, extrinsic, img->image, depth->image, confidence->image);
+
+        //发布点云数据
+        /*
+        if(start_time==0) start_time = clock();
+        end_time=clock();
+        //500 ms?
+        if( (end_time-start_time)/1000 > 500 ){
+                sensor_msgs::PointCloud2 output_msg;
+                pcl::toROSMsg( *(pointcloud_mapping->get_globalMap()), output_msg);
+            output_msg.header.frame_id = "map";
+            pointCloudpub.publish(output_msg);
+                start_time = end_time;
+        }
+        */
+}
+
+int main( int argc, char** argv )
+{
+        ros::init(argc, argv, "dense_mapping");
+        ros::NodeHandle nh;
+        double resolution,prob_threshold;
+        int depthInfoQueueSize;
+        
+        nh.param<double>("resolution", resolution, 0.01);
+        nh.param<double>("prob_threshold", prob_threshold, 0.75);
+        nh.param<int>("depthInfoQueueSize", depthInfoQueueSize, 10000);
+
+        pointcloud_mapping = new PointCloudMapping(resolution, prob_threshold);
+        imgSub = nh.subscribe("depth_info", depthInfoQueueSize, &vidCb);
+        
+        pointCloudpub = nh.advertise<sensor_msgs::PointCloud2> ("global_map", 1);
+
+        ros::spin();
+
+        return 0;
 }

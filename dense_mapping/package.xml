@@ -8,27 +8,25 @@
 
   </description>
 
-  <author>Shuoyuan</author>
-  <license>see http://vision.in.tum.de/dso</license>
-  <maintainer email="engelj-@in-dot-tum-dot.de">
-    Jakob Engel
+  <author>Shuoyuan Xu</author>
+  <license>see https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/tree/main</license>
+  <maintainer email="shuoyxu@gmail.com">
+  Shuoyuan Xu
   </maintainer>
-  <!-- <review status="unreviewed" notes=""/> -->
-  <url>http://vision.in.tum.de/dso</url>
 
   <buildtool_depend>catkin</buildtool_depend> 
-  <build_depend>geometry_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
+  <build_depend>unimvsnet</build_depend>
   <build_depend>cv_bridge</build_depend>
-  <build_depend>message_generation</build_depend>
+  <build_depend>pcl_conversions</build_depend>
+  <build_depend>pcl_ros</build_depend>
   
-  
-  <run_depend>geometry_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
+  <run_depend>unimvsnet</run_depend>
   <run_depend>cv_bridge</run_depend>
-  <run_depend>message_runtime</run_depend>
-  
+  <run_depend>pcl_conversions</run_depend>
+  <run_depend>pcl_ros</run_depend>
 
 </package>

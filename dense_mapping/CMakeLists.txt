@@ -2,42 +2,17 @@ cmake_minimum_required(VERSION 2.4.6)
 project(dense_mapping)
 
 find_package(catkin REQUIRED COMPONENTS
-  message_generation
-  std_msgs
-  geometry_msgs
   roscpp
   rospy
   sensor_msgs
   cv_bridge
+  unimvsnet
 )
-
-add_message_files(
-  FILES
-  SE3Msg.msg
-  SlidingWindowsMsg.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  sensor_msgs
-  std_msgs
-)
-
-set(DSO_PATH $ENV{DSO_PATH})
-message("\n\n---- LOOKING FOR DSO at\n\"${DSO_PATH}\"")
-
-
-find_package(Pangolin 0.2 REQUIRED)
-message("\n\n---- FOUND Pangolin Headers at\n\"${Pangolin_INCLUDE_DIRS}\"")
-message("---- FOUND Pangolin Libs at\n\"${Pangolin_LIBRARIES}\"")
 
 find_package(OpenCV REQUIRED)
-message("\n\n---- FOUND OpenCV Headers at\n\"${OpenCV_INCLUDE_DIRS}\"")
-message("---- FOUND OpenCV Libs at\n\"${OpenCV_LIBS}\"")
-
+find_package(PCL 1.7 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Boost COMPONENTS system thread) 
-find_library(DSO_LIBRARY dso ${DSO_PATH}/build/lib)
 
 # SSE flags
 
@@ -47,38 +22,32 @@ set(CMAKE_CXX_FLAGS
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/src
-  ${DSO_PATH}/src
-  ${DSO_PATH}/thirdparty/Sophus
-  ${Pangolin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIR}
-  ${catkin_INCLUDE_DIRS}
-)
-
-include_directories(
-  ${PROJECT_SOURCE_DIR}/src
-  ${DSO_PATH}/src
-  ${DSO_PATH}/thirdparty/Sophus
+  ${PROJECT_SOURCE_DIR}/include/dense_mapping
   ${OpenCV_INCLUDE_DIRS}
-  ${Pangolin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
+  ${PCL_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )  
 
+add_definitions(${PCL_DEFINITIONS})
+link_directories(${PCL_LIBRARY_DIRS})
 catkin_package(
-  CATKIN_DEPENDS message_runtime
+  CATKIN_DEPENDS 
 )
 
 ## Declare a C++ executable
-add_executable(dso_live src/main_xu.cpp)
+add_executable(dense_mapping_node
+src/dense_mapping.cpp
+src/pointcloudmapping.cpp)
 
-target_link_libraries(dso_live
-    ${DSO_LIBRARY}
-    ${Pangolin_LIBRARIES}
+target_link_libraries(dense_mapping_node
+    ${PCL_LIBRARY}
     ${OpenCV_LIBS}
     ${catkin_LIBRARIES})
 
 
 install(
-  TARGETS dso_live 
+  TARGETS dense_mapping_node 
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
