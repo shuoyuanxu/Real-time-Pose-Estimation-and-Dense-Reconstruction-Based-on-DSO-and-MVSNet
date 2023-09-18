@@ -195,7 +195,7 @@ print(torch.rand(5, 3))
 torch.cuda.is_available()
 ```
 
-## Week2: A ROS API for DSO
+## Week2: A ROS Node for DSO
 
 The input required for MVSNet consists of the camera state and the images within a sliding window. To facilitate this, an API is needed to extract these data from DSO.
 
@@ -483,3 +483,70 @@ The regression nature of the original MVSNet  requires the learning of learn a c
 A simple script for visualisation pfm
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/06e77bf0-e358-4809-b18f-eb8e39bfe484)
 
+
+## Week5 A ROS node for UniMVSNet
+### Understanding how UniMVSNet Runs
+- Input and Output
+  1. Input: Batch of images, camera intrinsic and extrinsic
+  2. Output: Depth Map and Confidence Map
+- How UniMVSNet runs
+  1. The main function is called model.py
+  2. Model uses args to initialise itself, then uses model.main() to run the testing
+  3. Use images, camera extrinsics, and initial depth to run the network
+  ``` outputs = self.network(sample_cuda["imgs"], sample_cuda["proj_matrices"], sample_cuda["depth_values"]) ```
+  4. Finally processing the 'output' to get depth and conf map 
+
+- For every time step, we need to run UniMVSNet using the input of 
+  1. Images in the current DSO sliding window 
+  2. Camera extrinsic  from DSO
+  3. Camera intrinsic
+
+#### Therefore, we need to modify main.py to subscribe to the ros node we developed in DSO then use such data on the self.network. We do it in the following order:
+1. Defining a ros msg for data transfer
+2. Modifying the model.py so that it can take ros subed data as input
+3. Create a launch script (following the style of main.py) to run the ros node of UniMVSNet and publish the depth map and confidence map.
+
+### Steps 
+#### Make a cmake project for msg used by UniMVSNet
+1. DepthMsg.msg
+```
+sensor_msgs/Image image
+float64[16] camToWorld
+float64[4] Intrinsics
+sensor_msgs/Image depth
+sensor_msgs/Image confidence
+```
+2. CMakeLists.txt and package.xml
+#### Make a Ros Node
+1. Adding a member function in model.py to use images from ros
+```
+def test_ros(self, imgs, proj_matrices_ms,depth_min,depth_max):
+  self.network.eval()
+  
+  depth_interval = (depth_max - depth_min) / self.args.numdepth
+  depth_values = np.arange(depth_min, depth_max, depth_interval, dtype=np.float32)
+  
+  sample = {"imgs": torch.from_numpy(np.expand_dims(imgs,axis=0)),
+            "proj_matrices": proj_matrices_ms,
+            "depth_values": torch.from_numpy(np.expand_dims(depth_values,axis=0))}
+  #print(sample)
+  sample_cuda = tocuda(sample)
+  start_time = time.time()
+  # get output
+  outputs = self.network(sample_cuda["imgs"], sample_cuda["proj_matrices"], sample_cuda["depth_values"])
+  end_time = time.time()
+  outputs = tensor2numpy(outputs)
+  del sample_cuda
+  imgs = sample["imgs"].numpy()
+  print('Time:{} Res:{}'.format(end_time - start_time, imgs[0].shape))
+  torch.cuda.empty_cache()
+  return outputs
+```
+Adding 'test_ros' as a member function because we need to use 'self.network' to run the model. We simplify the data processing of 'output', which will be done in 'unimvsnet_node.py'
+2. Adding a ros node to UniMVSNet (added to a launch script)
+3. Testing
+```
+source catkin_ws/devel/setup.bash
+rosrun unimvsnet unimvsnet_node.py
+```
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/80b97cc3-f54a-4124-a033-6047cf349c98)
