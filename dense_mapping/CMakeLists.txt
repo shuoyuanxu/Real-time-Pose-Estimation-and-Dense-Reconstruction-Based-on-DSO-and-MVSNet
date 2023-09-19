@@ -20,6 +20,8 @@ set(CMAKE_CXX_FLAGS
    "${SSE_FLAGS} -O2 -g -std=c++0x -fno-omit-frame-pointer"
 )
 
+set(CMAKE_CXX_STANDARD 14)
+
 include_directories(
   ${PROJECT_SOURCE_DIR}/src
   ${PROJECT_SOURCE_DIR}/include/dense_mapping

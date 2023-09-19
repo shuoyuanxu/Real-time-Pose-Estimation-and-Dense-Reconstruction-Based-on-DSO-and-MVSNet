@@ -22,11 +22,11 @@ time_t start_time=0,end_time=0;
 //获取对应的数据，并使用点云融合模块中实现的功能进行建图
 void vidCb(const unimvsnet::DepthMsg DepthMsg)
 {
-        //抛弃前5帧数据
+        //Disregards the first 5 frames
         static int count = 0;
         count++;
         if(count < 5) return;
-        
+        // Convert data to cv matrix format
         cv_bridge::CvImagePtr img = cv_bridge::toCvCopy(DepthMsg.image, sensor_msgs::image_encodings::BGR8);
         assert(img->image.type() == CV_8UC3);
         assert(img->image.channels() == 3);
@@ -49,7 +49,7 @@ void vidCb(const unimvsnet::DepthMsg DepthMsg)
         
         pointcloud_mapping->insertKeyFrame(intrinsic, extrinsic, img->image, depth->image, confidence->image);
 
-        //发布点云数据
+        //Publishing global map
         /*
         if(start_time==0) start_time = clock();
         end_time=clock();

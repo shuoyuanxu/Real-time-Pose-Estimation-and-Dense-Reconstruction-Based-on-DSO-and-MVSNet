@@ -9,7 +9,7 @@ import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from dso_ros.msg import SlidingWindowsMsg
-from unimvsnet.msg import Depthmsg
+from unimvsnet.msg import DepthMsg
 
 import argparse
 from model import Model
@@ -219,9 +219,9 @@ def SlidingWindowsCallback(slidingWindowsMsg_input):
     end_time = time.time()
     print('Windows_id {}, Time:{} Res:{}'.format(Windows_id, end_time - start_time, imgs[0].shape))
 
-    # formulate Depthmsg using output then publish it
+    # formulate DepthMsg using output then publish it
     # depth map and confidence map needs to be converted to ros format and resize to the original image size
-    depthmsg = Depthmsg()
+    depthmsg = DepthMsg()
     ref_msg = Keyframemsg_list[0]
     depthmsg.image = ref_msg["image"]
     depthmsg.camToWorld = ref_msg["camToWorld"]
@@ -243,6 +243,6 @@ if __name__ == '__main__':
     rospy.init_node('unimvsnet_node', anonymous=True)
     sub_slidingWindows = rospy.Subscriber('SlidingWindows', SlidingWindowsMsg, SlidingWindowsCallback,
                                           queue_size=slidingWindowsQueueSize)
-    pub_depth_info = rospy.Publisher('depth_info', Depthmsg, queue_size=depthInfoQueueSize)
+    pub_depth_info = rospy.Publisher('depth_info', DepthMsg, queue_size=depthInfoQueueSize)
     print("wait for msg")
     rospy.spin()

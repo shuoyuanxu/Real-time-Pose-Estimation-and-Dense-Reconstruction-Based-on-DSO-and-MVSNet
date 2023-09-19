@@ -20,33 +20,36 @@ class PointCloudMapping
 public:
     typedef pcl::PointXYZRGBA PointT;
     typedef pcl::PointCloud<PointT> PointCloudT;
-
+    // Constructor, prob_threshold_ is for outlier removal (0.7~0.8)
     PointCloudMapping(double resolution_, float prob_threshold_);
 
     PointCloudT::Ptr get_globalMap();
-    //设置体素滤波的分辨率
+    // Setting resolution for Voxel Filtering (to remove redundency)
     void set_resolution(double resolution);
-    //插入一帧数据
+    //insert a frame of information to the buffer list
     void insertKeyFrame(cv::Mat&  intrinsic, cv::Mat& extrinsic, \
                         cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
-    //更新全局地图与可视化线程
+    // Getting an element from the buffer list
     void update_globalMap();
+    // Switch this module
     void shutdown();
 protected:
-    //使用一帧数据生成局部点云地图
+    //generate local pointcloud using 1 frame of info, called by update_globalMap()
     PointCloudT::Ptr generatePointCloud(cv::Mat&  intrinsic, cv::Mat& extrinsic,\
                                         cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
-
+    // globalmap variable
     PointCloudT::Ptr globalMap;
+    //  visulisation thread
     std::shared_ptr<std::thread> viewerThread;
 
     bool shutDownFlag=false;
     std::mutex shutDownMutex;
-
+    // Flag, if a new keyframe is inserted 
     std::condition_variable  keyFrameUpdated;
+    // mutal exclusion, ensuring shared data are not accesed by multiple threads simultaneously
     std::mutex               keyFrameUpdateMutex;
 
-    // data to generate point clouds
+    // data to generate point clouds (list expands infinitly, a pontential issue)
     std::vector<cv::Mat> intrinsics;
     std::vector<cv::Mat> extrinsics;
     std::vector<cv::Mat> colorImgs;
