@@ -184,3 +184,15 @@ dso/build/bin/logs/time.txt
 dso/CMakeLists.txt
 unimvsnet/__pycache__/model.cpython-38.pyc
 unimvsnet/__pycache__/model.cpython-38.pyc
+build/dense_mapping/catkin_generated/ordered_paths.cmake
+build/dense_mapping/catkin_generated/package.cmake
+build/dense_mapping/catkin_generated/pkg.develspace.context.pc.py
+build/dense_mapping/catkin_generated/pkg.installspace.context.pc.py
+build/dense_mapping/catkin_generated/installspace/dense_mapping.pc
+build/dense_mapping/catkin_generated/installspace/dense_mappingConfig-version.cmake
+build/dense_mapping/catkin_generated/installspace/dense_mappingConfig.cmake
+build/dense_mapping/catkin_generated/stamps/dense_mapping/package.xml.stamp
+build/dense_mapping/catkin_generated/stamps/dense_mapping/pkg.pc.em.stamp
+build/devel/lib/pkgconfig/dense_mapping.pc
+build/devel/share/dense_mapping/cmake/dense_mappingConfig-version.cmake
+build/devel/share/dense_mapping/cmake/dense_mappingConfig.cmake

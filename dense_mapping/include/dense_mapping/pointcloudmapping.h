@@ -6,6 +6,7 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/visualization/cloud_viewer.h>
+//#include <pcl/registration/icp.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/eigen.hpp>
@@ -20,36 +21,28 @@ class PointCloudMapping
 public:
     typedef pcl::PointXYZRGBA PointT;
     typedef pcl::PointCloud<PointT> PointCloudT;
-    // Constructor, prob_threshold_ is for outlier removal (0.7~0.8)
+
     PointCloudMapping(double resolution_, float prob_threshold_);
 
     PointCloudT::Ptr get_globalMap();
-    // Setting resolution for Voxel Filtering (to remove redundency)
     void set_resolution(double resolution);
-    //insert a frame of information to the buffer list
-    void insertKeyFrame(cv::Mat&  intrinsic, cv::Mat& extrinsic, \
-                        cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
-    // Getting an element from the buffer list
-    void update_globalMap();
-    // Switch this module
+    void insertKeyFrame(cv::Mat&  intrinsic, cv::Mat& extrinsic, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
     void shutdown();
+    void update_globalMap();
+
 protected:
-    //generate local pointcloud using 1 frame of info, called by update_globalMap()
-    PointCloudT::Ptr generatePointCloud(cv::Mat&  intrinsic, cv::Mat& extrinsic,\
-                                        cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
-    // globalmap variable
+    PointCloudT::Ptr generatePointCloud(cv::Mat&  intrinsic, cv::Mat& extrinsic, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
+
     PointCloudT::Ptr globalMap;
-    //  visulisation thread
     std::shared_ptr<std::thread> viewerThread;
 
     bool shutDownFlag=false;
     std::mutex shutDownMutex;
-    // Flag, if a new keyframe is inserted 
+
     std::condition_variable  keyFrameUpdated;
-    // mutal exclusion, ensuring shared data are not accesed by multiple threads simultaneously
     std::mutex               keyFrameUpdateMutex;
 
-    // data to generate point clouds (list expands infinitly, a pontential issue)
+    // data to generate point clouds
     std::vector<cv::Mat> intrinsics;
     std::vector<cv::Mat> extrinsics;
     std::vector<cv::Mat> colorImgs;
@@ -65,4 +58,3 @@ protected:
 };
 
 #endif // POINTCLOUDMAPPING_H
-

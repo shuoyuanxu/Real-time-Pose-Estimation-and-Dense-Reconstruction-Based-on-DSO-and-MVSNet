@@ -1,27 +1,12 @@
-#include <ros/ros.h>
-#include <sensor_msgs/image_encodings.h>
-#include <sensor_msgs/Image.h>
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <Eigen/Dense>
-#include <opencv2/core/eigen.hpp>
-#include <time.h>
-
 #include "pointcloudmapping.h"
 
-
-
-// Constructor
 PointCloudMapping::PointCloudMapping(double resolution_, float prob_threshold_)
 {
     set_resolution(resolution_);
     this->prob_threshold = prob_threshold_;
-    // Shared pointer to initialise globalmap
+    
     globalMap = std::make_shared< PointCloudT >();
-    // Shared pointer to initialise visulisation thread, bind the pointer 'this' to update_globalMap
+
     viewerThread = std::make_shared<std::thread>( std::bind(&PointCloudMapping::update_globalMap, this ) );
 }
 
@@ -30,10 +15,9 @@ void PointCloudMapping::set_resolution(double resolution_){
     voxel.setLeafSize( resolution_, resolution_, resolution_);
 }
 
-// Destructor
 void PointCloudMapping::shutdown()
 {
-    {   // Ensure mutex works within '{}' 
+    {
         std::unique_lock<std::mutex> lck(shutDownMutex);
         shutDownFlag = true;
         keyFrameUpdated.notify_one();
@@ -41,10 +25,14 @@ void PointCloudMapping::shutdown()
     viewerThread->join();
 }
 
-// Insert the data of a frame 
+PointCloudMapping::PointCloudT::Ptr PointCloudMapping::get_globalMap()
+{
+    return globalMap;
+}
+
 void PointCloudMapping::insertKeyFrame(cv::Mat&  intrinsic, cv::Mat& extrinsic, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence)
 {
-    std::unique_lock<std::mutex> lck(keyframeMutex); // get the mutex 
+    std::unique_lock<std::mutex> lck(keyframeMutex);
 
     intrinsics.push_back( intrinsic.clone() );
     extrinsics.push_back( extrinsic.clone() );
@@ -52,13 +40,11 @@ void PointCloudMapping::insertKeyFrame(cv::Mat&  intrinsic, cv::Mat& extrinsic, 
     depthImgs.push_back( depth.clone() );
     confidenceImgs.push_back( confidence.clone() );
 
-    keyFrameUpdated.notify_one(); // once pushback is done, notify the waitting thread
+    keyFrameUpdated.notify_one();
 }
 
-// generate point cloud
-pcl::PointCloud<PointCloudMapping::PointT>::Ptr PointCloudMapping::generatePointCloud(\
-cv::Mat& intrinsics, cv::Mat& extrinsics, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence)
-{   // temporary point cloud
+pcl::PointCloud<PointCloudMapping::PointT>::Ptr PointCloudMapping::generatePointCloud(cv::Mat& intrinsics, cv::Mat& extrinsics, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence)
+{
     PointCloudT::Ptr tmp_pc( new PointCloudT() );
 
     // point cloud is null ptr
@@ -70,14 +56,13 @@ cv::Mat& intrinsics, cv::Mat& extrinsics, cv::Mat& color, cv::Mat& depth, cv::Ma
     for ( int m=0; m<depth.rows; m+=3 )
     {
         for ( int n=0; n<depth.cols; n+=3 )
-        {   // Using probability to remove outliers
+        {
             if(confidence.ptr<float>(m)[n] < prob_threshold){
                 continue;
             }
 
-            float d = depth.ptr<float>(m)[n]; // real depth, no need to rescale
-            //if( d < 0 || d > 15 ) continue; // removel unrealistic depths
-            // Project every pixal to Camera Frame
+            float d = depth.ptr<float>(m)[n];
+            if( d < 0 || d > 15 ) continue;
             PointT p;
             p.z = d;
             p.x = ( n - cx) * p.z / fx;
@@ -90,37 +75,36 @@ cv::Mat& intrinsics, cv::Mat& extrinsics, cv::Mat& color, cv::Mat& depth, cv::Ma
             tmp_pc->points.push_back(p);
         }
     }
-    // Assign extrinsics to Eigen Matrix
+
     static Eigen::Matrix4f T_delta;
 
     Eigen::Matrix4f T;
     for(int i=0; i<4; i++)
         for(int j=0; j<4; j++)
             T(i,j) = extrinsics.at<double>(i,j);
-    // Define a output point cloud
+
+    PointCloudT::Ptr output( new PointCloudT() );
+
     PointCloudT::Ptr cloud(new PointCloudT);
-    // Compute the output point cloud (world frame)
     pcl::transformPointCloud( *tmp_pc, *cloud, T.matrix());
     cloud->is_dense = false;
-    
-    //Adaptive Voxel Filtering
-    //double resolution_tmp = cv::mean(depth).val[0]/ ((fx<fy?fx:fy) * 20);
-    //set_resolution( resolution_tmp < resolution ? resolution_tmp : resolution);
+
+    double resolution_tmp = cv::mean(depth).val[0]/ ((fx<fy?fx:fy) * 20);
+    set_resolution( resolution_tmp < resolution ? resolution_tmp : resolution);
     
     cout << "generate point cloud for kf size=" << cloud->points.size() << endl;
     return cloud;
 }
 
-// Update global map. running on a independent thread
 void PointCloudMapping::update_globalMap()
-{   // Using shared pointer to generate a visulisation object
+{
+    //pcl::visualization::CloudViewer viewer("viewer");
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("viewer"));
-    viewer->setBackgroundColor(0,0,0); //background black
-    // Basic handlings when using PCL visulisation
+    viewer->setBackgroundColor(0,0,0);
+
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(globalMap);
-    viewer->addPointCloud<pcl::PointXYZRGBA> (globalMap, rgb, "globalMap"); 
-    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE,\
-    1, "globalMap");
+    viewer->addPointCloud<pcl::PointXYZRGBA> (globalMap, rgb, "globalMap");
+    viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "globalMap");
 
     while(1)
     {
@@ -133,7 +117,6 @@ void PointCloudMapping::update_globalMap()
         }
         {
             std::unique_lock<std::mutex> lck_keyframeUpdated( keyFrameUpdateMutex );
-            // only running when waited variable arrived
             keyFrameUpdated.wait( lck_keyframeUpdated );
         }
 
@@ -143,18 +126,16 @@ void PointCloudMapping::update_globalMap()
             std::unique_lock<std::mutex> lck( keyframeMutex );
             N = depthImgs.size();
         }
-        // only loop through the newly add keyframes
+
         for ( size_t i=lastKeyframeSize; i<N ; i++ )
         {
             PointCloudT::Ptr p = generatePointCloud( intrinsics[i], extrinsics[i], colorImgs[i], depthImgs[i], confidenceImgs[i]);
-            // Adding the generated point cloud to the globalMap
             *globalMap += *p;
         }
         
         PointCloudT::Ptr tmp(new PointCloudT());
         voxel.setInputCloud( globalMap );
         voxel.filter( *tmp );
-        // swap the filtered point cloud back to global map
         globalMap->swap( *tmp );
 
         
@@ -168,3 +149,4 @@ void PointCloudMapping::update_globalMap()
     }
     
 }
+
