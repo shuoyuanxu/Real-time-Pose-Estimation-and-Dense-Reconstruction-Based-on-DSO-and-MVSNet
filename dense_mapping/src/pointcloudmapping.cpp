@@ -5,7 +5,7 @@ PointCloudMapping::PointCloudMapping(double resolution_, float prob_threshold_)
     set_resolution(resolution_);
     this->prob_threshold = prob_threshold_;
     
-    globalMap = std::make_shared< PointCloudT >();
+    globalMap = boost::make_shared< PointCloudT >();
 
     viewerThread = std::make_shared<std::thread>( std::bind(&PointCloudMapping::update_globalMap, this ) );
 }
@@ -99,7 +99,7 @@ pcl::PointCloud<PointCloudMapping::PointT>::Ptr PointCloudMapping::generatePoint
 void PointCloudMapping::update_globalMap()
 {
     //pcl::visualization::CloudViewer viewer("viewer");
-    std::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("viewer"));
+    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("viewer"));
     viewer->setBackgroundColor(0,0,0);
 
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(globalMap);

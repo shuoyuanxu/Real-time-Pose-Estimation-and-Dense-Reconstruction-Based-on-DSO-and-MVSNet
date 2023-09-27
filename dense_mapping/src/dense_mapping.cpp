@@ -64,9 +64,6 @@ void vidCb(const unimvsnet::DepthMsg DepthMsg)
 }
 
 
-
-
-
 int main( int argc, char** argv )
 {
 	ros::init(argc, argv, "dense_mapping");

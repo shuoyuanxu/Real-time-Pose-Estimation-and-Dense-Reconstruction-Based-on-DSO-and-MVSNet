@@ -18,7 +18,7 @@ message("---- FOUND OpenCV Libs at\n\"${OpenCV_LIBS}\"")
 
 find_package(PCL 1.7 REQUIRED)
 find_package(Eigen3 REQUIRED)
-
+find_package(Boost COMPONENTS system thread) 
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/src
