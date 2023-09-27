@@ -99,7 +99,7 @@ pcl::PointCloud<PointCloudMapping::PointT>::Ptr PointCloudMapping::generatePoint
 void PointCloudMapping::update_globalMap()
 {
     //pcl::visualization::CloudViewer viewer("viewer");
-    boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("viewer"));
+    std::shared_ptr<pcl::visualization::PCLVisualizer> viewer (new pcl::visualization::PCLVisualizer ("viewer"));
     viewer->setBackgroundColor(0,0,0);
 
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGBA> rgb(globalMap);

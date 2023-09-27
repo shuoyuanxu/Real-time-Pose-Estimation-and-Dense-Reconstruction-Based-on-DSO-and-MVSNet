@@ -31,7 +31,7 @@ find_package(Pangolin 0.2 REQUIRED)
 message("\n\n---- FOUND Pangolin Headers at\n\"${Pangolin_INCLUDE_DIRS}\"")
 message("---- FOUND Pangolin Libs at\n\"${Pangolin_LIBRARIES}\"")
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 3.3.4 REQUIRED)
 message("\n\n---- FOUND OpenCV Headers at\n\"${OpenCV_INCLUDE_DIRS}\"")
 message("---- FOUND OpenCV Libs at\n\"${OpenCV_LIBS}\"")
 
@@ -49,18 +49,10 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/src
   ${DSO_PATH}/src
   ${DSO_PATH}/thirdparty/Sophus
-  ${Pangolin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIR}
-  ${catkin_INCLUDE_DIRS}
-)
-
-include_directories(
-  ${PROJECT_SOURCE_DIR}/src
-  ${DSO_PATH}/src
-  ${DSO_PATH}/thirdparty/Sophus
   ${OpenCV_INCLUDE_DIRS}
   ${Pangolin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
+  ${catkin_INCLUDE_DIRS}
 )  
 
 catkin_package(
@@ -74,6 +66,7 @@ target_link_libraries(dso_live
     ${DSO_LIBRARY}
     ${Pangolin_LIBRARIES}
     ${OpenCV_LIBS}
+    ${OpenCV_LIBRARIES}
     ${catkin_LIBRARIES})
 
 
