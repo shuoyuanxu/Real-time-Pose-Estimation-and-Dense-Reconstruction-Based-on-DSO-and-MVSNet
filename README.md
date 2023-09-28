@@ -1,9 +1,9 @@
 # Real time Pose Estimation and Dense Reconstruction Based on DSO and MVSNet
-To improve my mathematical, machine learning and coding skills as an algorithm engineer, here is a passion project of mine (update weekly)   
-![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/aaad7197-5708-4cea-9e4f-1e8f313d825d)
+To improve my mathematical, machine learning and coding skills as an algorithm engineer, here is a passion project of mine  
+
 
 System Description
-
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/aaad7197-5708-4cea-9e4f-1e8f313d825d)
 Most existing monocular dense mapping algorithms often struggle to meet real-time requirements or only capable of producing low-quality reconstructions. To address these issues, This project aims to develop a novel real-time monocular dense mapping system with the following features:
 
 * Loose Coupling Between Localisation and Mapping: This allows for high local accuracy in pose estimation and high-quality dense point cloud reconstruction.
