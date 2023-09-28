@@ -20,7 +20,7 @@ DSO (Direct Sparse Odometry) uses a sliding window approach for Bundle Adjustmen
 
 System: i5-12400f, Nvdia 3060Ti G6X, Asrock B660M-ITX
 
-## Week1: Environment configuration
+## 1. Environment configuration
 ### ROS
 fishros script (this is kinda cheating XD)
 
@@ -196,7 +196,7 @@ print(torch.rand(5, 3))
 torch.cuda.is_available()
 ```
 
-## Week2: A ROS Node for DSO
+## 2. A ROS Node for DSO
 
 The input required for MVSNet consists of the camera state and the images within a sliding window. To facilitate this, an API is needed to extract these data from DSO.
 
@@ -301,7 +301,7 @@ rostopic echo /curSE3
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/f583aa74-778c-4050-a09a-2134dee3f1b9)
 
-## Week3: Understanding PCL
+## 3. Understanding PCL
 PCL will be used to process the output of MVSNet to obtain an accurate 3d reconstruction. Therefore, understanding the basics of PCL is required for the next stage of development 
 ### Testing (Already installed with ROS)
 1. Simple Visulisation
@@ -428,7 +428,7 @@ transform.rotate(rotation);
 ```pcl::transformPointCloud(*cloud_original, *cloud_transformed, transform);```
 
 
-## Week4 Understanding [UniMVSNet](https://github.com/prstrive/UniMVSNet)
+## 4. Understanding [UniMVSNet](https://github.com/prstrive/UniMVSNet)
 ### Plane sweep algorithm in multi-view stereo
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/13181d0c-7dc5-4efc-a965-b6315d9168fd)
 - How it works:
@@ -485,7 +485,7 @@ A simple script for visualisation pfm
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/06e77bf0-e358-4809-b18f-eb8e39bfe484)
 
 
-## Week5 A ROS node for UniMVSNet
+## 5. A ROS node for UniMVSNet
 ### Understanding how UniMVSNet Runs
 - Input and Output
   1. Input: Batch of images, camera intrinsic and extrinsic
@@ -552,7 +552,7 @@ rosrun unimvsnet unimvsnet_node.py
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/80b97cc3-f54a-4124-a033-6047cf349c98)
 
-## Week6 A ROS node for merging point cloud
+## 6. A ROS node for merging point cloud
 ### Input and Output
 #### Input
 1. Images
