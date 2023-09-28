@@ -23,23 +23,28 @@ public:
     typedef pcl::PointCloud<PointT> PointCloudT;
 
     PointCloudMapping(double resolution_, float prob_threshold_);
-
+    // Constructor, prob_threshold_ is for outlier removal (0.7~0.8)
     PointCloudT::Ptr get_globalMap();
+    // Setting resolution for Voxel Filtering (to remove redundency)
     void set_resolution(double resolution);
+    //insert a frame of information to the buffer list
     void insertKeyFrame(cv::Mat&  intrinsic, cv::Mat& extrinsic, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
     void shutdown();
+    // Getting an element from the buffer list
     void update_globalMap();
 
 protected:
+    //generate local pointcloud using 1 frame of info, called by update_globalMap()
     PointCloudT::Ptr generatePointCloud(cv::Mat&  intrinsic, cv::Mat& extrinsic, cv::Mat& color, cv::Mat& depth, cv::Mat& confidence);
-
+    // globalmap variable
     PointCloudT::Ptr globalMap;
     std::shared_ptr<std::thread> viewerThread;
 
     bool shutDownFlag=false;
     std::mutex shutDownMutex;
-
+    // Flag, if a new keyframe is inserted
     std::condition_variable  keyFrameUpdated;
+    // mutal exclusion, ensuring shared data are not accesed by multiple threads simultaneously
     std::mutex               keyFrameUpdateMutex;
 
     // data to generate point clouds
@@ -50,7 +55,7 @@ protected:
     std::vector<cv::Mat> confidenceImgs;
     std::mutex keyframeMutex;
     uint16_t lastKeyframeSize = 0;
-    float prob_threshold = 0.75;
+    float prob_threshold = 0.5;
 
     double resolution = 0.04;
     pcl::VoxelGrid<PointT> voxel;

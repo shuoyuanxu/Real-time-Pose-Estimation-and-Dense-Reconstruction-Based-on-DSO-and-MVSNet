@@ -138,7 +138,7 @@ depth_max = 20
 depth_min = 0.01
 # Windows_id is used to identify if images belongs to the same sliding window
 Windows_id = -1
-setting_maxFrames = 0
+setting_maxFrames = 7
 
 
 # Callback function for gathering msgs from ros subscriber
@@ -218,7 +218,7 @@ def SlidingWindowsCallback(slidingWindowsMsg_input):
     outputs = model.test_ros(imgs, proj_matrices_ms, depth_min, depth_max)
     end_time = time.time()
     print('Windows_id {}, Time:{} Res:{}'.format(Windows_id, end_time - start_time, imgs[0].shape))
-
+    print('probability:',  np.mean(outputs["photometric_confidence"]))
     # formulate DepthMsg using output then publish it
     # depth map and confidence map needs to be converted to ros format and resize to the original image size
     depthmsg = DepthMsg()

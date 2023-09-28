@@ -21,10 +21,11 @@ time_t start_time=0,end_time=0;
 
 void vidCb(const unimvsnet::DepthMsg DepthMsg)
 {
+	//Disregards the first 5 frames
 	static int count = 0;
 	count++;
 	if(count < 5) return;
-	
+	// Convert data to cv matrix format
 	cv_bridge::CvImagePtr img = cv_bridge::toCvCopy(DepthMsg.image, sensor_msgs::image_encodings::BGR8);
 	assert(img->image.type() == CV_8UC3);
 	assert(img->image.channels() == 3);
@@ -47,7 +48,7 @@ void vidCb(const unimvsnet::DepthMsg DepthMsg)
 	
 	pointcloud_mapping->insertKeyFrame(intrinsic, extrinsic, img->image, depth->image, confidence->image);
 
-	//发布点云数据
+	//Publishing global map	
 	
 	if(start_time==0) start_time = clock();
 	end_time=clock();
@@ -72,7 +73,7 @@ int main( int argc, char** argv )
 	int depthInfoQueueSize;
 	
 	nh.param<double>("resolution", resolution, 0.01);
-	nh.param<double>("prob_threshold", prob_threshold, 0.75);
+	nh.param<double>("prob_threshold", prob_threshold, 0.5);
 	nh.param<int>("depthInfoQueueSize", depthInfoQueueSize, 10000);
 
 	pointcloud_mapping = new PointCloudMapping(resolution, prob_threshold);
