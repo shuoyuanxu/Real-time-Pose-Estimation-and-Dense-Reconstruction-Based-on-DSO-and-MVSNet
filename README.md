@@ -600,3 +600,11 @@ rosrun unimvsnet unimvsnet_node.py
 rosrun dense_mapping dense_mapping_node
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/43519ffe-2b72-4c35-ba86-a61cee895b67)
+#### Some performance issues with UniMVSNet, some parameters needs to be tunned!!!!!!
+
+## Methods to improve the performance of this project
+### Introducing other sensors (IMU)
+### Using better perfromed MVSNet
+### Truncated Signed Distance Function for global map ()
+
+
