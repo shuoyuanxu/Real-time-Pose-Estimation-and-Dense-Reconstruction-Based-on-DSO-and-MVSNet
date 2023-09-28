@@ -550,3 +550,53 @@ source catkin_ws/devel/setup.bash
 rosrun unimvsnet unimvsnet_node.py
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/80b97cc3-f54a-4124-a033-6047cf349c98)
+
+## Week6 A ROS node for merging point cloud
+### Input and Output
+#### Input
+1. Images
+2. Depth Map
+3. Confidence Map
+4. Camera Intrinsics and Extrinsics
+#### Output
+Global Point Cloud
+### Steps
+#### Receiving input through ROS
+```
+imgSub = nh.subscribe("depth_info", depthInfoQueueSize, &vidCb);
+```
+#### Create a thread for visulisation
+```
+viewerThread = std::make_shared<std::thread>( std::bind(&PointCloudMapping::update_globalMap, this ) ); //mutex is required to prevent accessing conflict by different threads
+```
+#### Create another thread for point cloud merging (see update_globalMap() in pointcloudmapping.cpp)
+1. Creating a local point cloud using input from UniMVSNet
+```
+PointCloudT::Ptr p = generatePointCloud( intrinsics[i], extrinsics[i], colorImgs[i], depthImgs[i], confidenceImgs[i]);
+```
+2. Adding the generated point cloud to the globalMap
+```
+*globalMap += *p;
+```
+3. Performs voxel filtering
+```
+voxel.filter( *tmp );
+```
+4. Visulisation
+```
+viewer->updatePointCloud(globalMap, "globalMap");
+```
+#### Publishing output through ROS
+```
+pointCloudpub = nh.advertise<sensor_msgs::PointCloud2> ("global_map", 1);
+```
+#### Running the whole project (5 terminals)
+```
+source catkin_ws/devel/setup.bash
+roscore
+rosbag play --pause MH_01_easy.bag
+rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
+rosrun unimvsnet unimvsnet_node.py
+rosrun dense_mapping dense_mapping_node
+```
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/43519ffe-2b72-4c35-ba86-a61cee895b67)
