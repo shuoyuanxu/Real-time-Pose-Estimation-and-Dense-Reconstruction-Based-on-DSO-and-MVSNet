@@ -608,6 +608,5 @@ https://www.youtube.com/watch?v=DwrOYyBTUiY
 ## Methods to improve the performance of this project
 ### Introducing other sensors (IMU)
 ### Using better perfromed MVSNet
-### Truncated Signed Distance Function for global map ()
-
+### Truncated Signed Distance Function (TSDF) for global map
 
