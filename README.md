@@ -1,8 +1,9 @@
 # Real time Pose Estimation and Dense Reconstruction Based on DSO and MVSNet
-To improve my mathematical, machine learning and coding skills as an algorithm engineer, here is a passion project of mine (update weekly)   
+To improve my mathematical, machine learning and coding skills as an algorithm engineer, here is a passion project of mine  
 
-System Description (to be updated)
 
+## System Description
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/aaad7197-5708-4cea-9e4f-1e8f313d825d)
 Most existing monocular dense mapping algorithms often struggle to meet real-time requirements or only capable of producing low-quality reconstructions. To address these issues, This project aims to develop a novel real-time monocular dense mapping system with the following features:
 
 * Loose Coupling Between Localisation and Mapping: This allows for high local accuracy in pose estimation and high-quality dense point cloud reconstruction.
@@ -19,7 +20,7 @@ DSO (Direct Sparse Odometry) uses a sliding window approach for Bundle Adjustmen
 
 System: i5-12400f, Nvdia 3060Ti G6X, Asrock B660M-ITX
 
-## Week1: Environment configuration
+## 1. Environment configuration
 ### ROS
 fishros script (this is kinda cheating XD)
 
@@ -195,7 +196,7 @@ print(torch.rand(5, 3))
 torch.cuda.is_available()
 ```
 
-## Week2: A ROS Node for DSO
+## 2. A ROS Node for DSO
 
 The input required for MVSNet consists of the camera state and the images within a sliding window. To facilitate this, an API is needed to extract these data from DSO.
 
@@ -300,7 +301,7 @@ rostopic echo /curSE3
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/f583aa74-778c-4050-a09a-2134dee3f1b9)
 
-## Week3: Understanding PCL
+## 3. Understanding PCL
 PCL will be used to process the output of MVSNet to obtain an accurate 3d reconstruction. Therefore, understanding the basics of PCL is required for the next stage of development 
 ### Testing (Already installed with ROS)
 1. Simple Visulisation
@@ -427,7 +428,7 @@ transform.rotate(rotation);
 ```pcl::transformPointCloud(*cloud_original, *cloud_transformed, transform);```
 
 
-## Week4 Understanding [UniMVSNet](https://github.com/prstrive/UniMVSNet)
+## 4. Understanding [UniMVSNet](https://github.com/prstrive/UniMVSNet)
 ### Plane sweep algorithm in multi-view stereo
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/13181d0c-7dc5-4efc-a965-b6315d9168fd)
 - How it works:
@@ -484,7 +485,7 @@ A simple script for visualisation pfm
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/06e77bf0-e358-4809-b18f-eb8e39bfe484)
 
 
-## Week5 A ROS node for UniMVSNet
+## 5. A ROS node for UniMVSNet
 ### Understanding how UniMVSNet Runs
 - Input and Output
   1. Input: Batch of images, camera intrinsic and extrinsic
@@ -550,3 +551,61 @@ source catkin_ws/devel/setup.bash
 rosrun unimvsnet unimvsnet_node.py
 ```
 ![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/80b97cc3-f54a-4124-a033-6047cf349c98)
+
+## 6. A ROS node for merging point cloud
+### Input and Output
+#### Input
+1. Images
+2. Depth Map
+3. Confidence Map
+4. Camera Intrinsics and Extrinsics
+#### Output
+Global Point Cloud
+### Steps
+#### Receiving input through ROS
+```
+imgSub = nh.subscribe("depth_info", depthInfoQueueSize, &vidCb);
+```
+#### Create a thread for visulisation
+```
+viewerThread = std::make_shared<std::thread>( std::bind(&PointCloudMapping::update_globalMap, this ) ); //mutex is required to prevent accessing conflict by different threads
+```
+#### Create another thread for point cloud merging (see update_globalMap() in pointcloudmapping.cpp)
+1. Creating a local point cloud using input from UniMVSNet
+```
+PointCloudT::Ptr p = generatePointCloud( intrinsics[i], extrinsics[i], colorImgs[i], depthImgs[i], confidenceImgs[i]);
+```
+2. Adding the generated point cloud to the globalMap
+```
+*globalMap += *p;
+```
+3. Performs voxel filtering
+```
+voxel.filter( *tmp );
+```
+4. Visulisation
+```
+viewer->updatePointCloud(globalMap, "globalMap");
+```
+#### Publishing output through ROS
+```
+pointCloudpub = nh.advertise<sensor_msgs::PointCloud2> ("global_map", 1);
+```
+#### Running the whole project (5 terminals)
+```
+source catkin_ws/devel/setup.bash
+roscore
+rosbag play --pause MH_01_easy.bag
+rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1
+rosrun unimvsnet unimvsnet_node.py
+rosrun dense_mapping dense_mapping_node
+```
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/43519ffe-2b72-4c35-ba86-a61cee895b67)
+#### Some performance issues with UniMVSNet, some parameters needs to be tunned!!!!!!
+
+## Methods to improve the performance of this project
+### Introducing other sensors (IMU)
+### Using better perfromed MVSNet
+### Truncated Signed Distance Function for global map ()
+
+
