@@ -600,8 +600,10 @@ rosrun dso_ros dso_live image:=/cam0/image_raw calib='/home/shu/Database/MH01/ca
 rosrun unimvsnet unimvsnet_node.py
 rosrun dense_mapping dense_mapping_node
 ```
-![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/43519ffe-2b72-4c35-ba86-a61cee895b67)
-#### Some performance issues with UniMVSNet, some parameters needs to be tunned!!!!!!
+#### Results
+![image](https://github.com/shuoyuanxu/Real-time-Pose-Estimation-and-Dense-Reconstruction-Based-on-DSO-and-MVSNet/assets/21218812/724ebfed-5435-43c1-baf1-457edf93c273)
+Video
+https://www.youtube.com/watch?v=DwrOYyBTUiY
 
 ## Methods to improve the performance of this project
 ### Introducing other sensors (IMU)
