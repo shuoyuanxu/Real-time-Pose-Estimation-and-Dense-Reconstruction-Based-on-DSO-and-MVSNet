@@ -84,7 +84,7 @@ parser.add_argument('--scheduler', type=str, default="steplr", choices=["steplr"
 parser.add_argument('--warmup', type=float, default=0.2, help='warmup epochs')
 parser.add_argument('--milestones', type=float, nargs='+', default=[10, 12, 14], help='lr schedule')
 parser.add_argument('--lr_decay', type=float, default=0.5, help='lr decay at every milestone')
-parser.add_argument('--resume', type=str, help='path to the resume model')
+parser.add_argument('--resume', type=str, default="/home/shu/catkin_ws/src/unimvsnet/trained_model/unimvsnet_blendedmvs.ckpt", help='path to the resume model')
 parser.add_argument('--log_dir', type=str, help='path to the log dir')
 parser.add_argument('--dlossw', type=float, nargs='+', default=[0.5, 1.0, 2.0],
                     help='depth loss weight for different stage')
@@ -134,7 +134,7 @@ args = parser.parse_args()
 
 Keyframemsg_list = []
 # Depth assumption for MVSNet
-depth_max = 20
+depth_max = 10
 depth_min = 0.01
 # Windows_id is used to identify if images belongs to the same sliding window
 Windows_id = -1

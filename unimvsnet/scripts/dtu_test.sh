@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 datapath="/home/shu/Database/UniMVSNet/dtu"
 outdir="/home/shu/Database/UniMVSNet/output"
-resume="/home/shu/Database/UniMVSNet/model/unimvsnet_dtu.ckpt"
+resume="/home/shu/catkin_ws/src/unimvsnet/trained_model/unimvsnet_dtu.ckpt"
 fusibile_exe_path="/home/shu/Database/UniMVSNet/fusibile/fusibile"
 
 CUDA_VISIBLE_DEVICES=0 python3 main.py \

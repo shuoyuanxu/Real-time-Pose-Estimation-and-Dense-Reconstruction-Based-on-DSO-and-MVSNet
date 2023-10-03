@@ -58,7 +58,7 @@ class Model:
                 self.args.start_epoch = checkpoint["epoch"] + 1
                 self.optimizer.load_state_dict(checkpoint["optimizer"])
                 self.lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
-            self.network_without_ddp.load_state_dict(checkpoint["model"])
+            self.network_without_ddp.load_state_dict(checkpoint["model"], False)
 
     def main(self):
         if self.args.vis:

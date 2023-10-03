@@ -73,7 +73,7 @@ int main( int argc, char** argv )
 	int depthInfoQueueSize;
 	
 	nh.param<double>("resolution", resolution, 0.01);
-	nh.param<double>("prob_threshold", prob_threshold, 0.5);
+	nh.param<double>("prob_threshold", prob_threshold, 0.94);
 	nh.param<int>("depthInfoQueueSize", depthInfoQueueSize, 10000);
 
 	pointcloud_mapping = new PointCloudMapping(resolution, prob_threshold);

@@ -55,7 +55,7 @@ protected:
     std::vector<cv::Mat> confidenceImgs;
     std::mutex keyframeMutex;
     uint16_t lastKeyframeSize = 0;
-    float prob_threshold = 0.5;
+    float prob_threshold = 0.9;
 
     double resolution = 0.04;
     pcl::VoxelGrid<PointT> voxel;
