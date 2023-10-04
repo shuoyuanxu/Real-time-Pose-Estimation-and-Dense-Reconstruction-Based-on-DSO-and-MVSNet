@@ -205,4 +205,5 @@ dso/build/.cmake/api/v1/reply/target-dso_dataset-cdf4f7af4ed47f783009.json
 dso/build/.cmake/api/v1/reply/codemodel-v2-c7cce61c3b319cbe1a98.json
 dso/build/.cmake/api/v1/reply/index-2023-09-16T22-24-46-0642.json
 dso/build/.cmake/api/v1/reply/target-dso_dataset-a30e900ef7551ba7871a.json
+.vscode
 .gitignore
