@@ -591,7 +591,7 @@ viewer->updatePointCloud(globalMap, "globalMap");
 ```
 pointCloudpub = nh.advertise<sensor_msgs::PointCloud2> ("global_map", 1);
 ```
-#### Running the whole project (5 terminals)
+#### Running the whole project (5 terminals or use the launch script in dense_mapping)
 ```
 source catkin_ws/devel/setup.bash
 roscore
