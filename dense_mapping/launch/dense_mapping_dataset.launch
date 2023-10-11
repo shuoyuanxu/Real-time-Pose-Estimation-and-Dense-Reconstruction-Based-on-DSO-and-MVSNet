@@ -1,51 +1,22 @@
 <launch>
 
+    <!-- Source setup.bash -->
+    <machine name="my_machine" address="localhost" env-loader="/path/to/catkin_ws/devel/setup.bash"/>
 
-    <param name="img_topic" type="string" value="/cam0/image_raw"/>
-    <param name="slidingWindowsQueueSize" type="int" value="1"/>
-    <param name="depthInfoQueueSize" type="int" value="1"/>
+    <!-- Start roscore -->
+    <master auto="start"/>
 
-    <param name="prob_threshold" type="double" value="0.8"/>
-    <param name="setting_desiredImmatureDensity" type="int" value="1000"/>
-    <param name="setting_desiredPointDensity" type="int" value="1200"/>
-    <param name="setting_minFrames" type="int" value="5"/>
-    <param name="setting_maxFrames" type="int" value="11"/>
-    <param name="setting_maxOptIterations" type="int" value="11"/>
-    <param name="setting_minOptIterations" type="int" value="1"/>
-    <param name="setting_kfGlobalWeight" type="double" value="1"/>
-    <param name="disableDisplay_DSO" type="bool" value="true"/>
+    <!-- Play rosbag -->
+    <node name="play_bag" pkg="rosbag" type="play" args="/home/shu/Database/MH_01_easy.bag"/>
 
+    <!-- Run dso_ros -->
+    <node name="dso_live" pkg="dso_ros" type="dso_live" machine="my_machine" output="screen" 
+        args="image:=/cam0/image_raw calib='/home/shu/Database/MH01/cam0/camera.txt' mode=1"/>
 
-    <node pkg="dso_ros" type="dso_live" name="dso_live" args="calib=/home/slam/ros_ws/src/dso_ros/camera.txt" output="log">
-    </node>
+    <!-- Run unimvsnet -->
+    <node name="unimvsnet_node" pkg="unimvsnet" type="unimvsnet_node.py" machine="my_machine" output="screen"/>
 
-    <node pkg="unimvsnet" type="unimvsnet_node.py" name="unimvsnet_node" args="--ndepths 32 32 8 --max_h 480 --max_w 752" respawn="true" output="screen">
-    </node>
-
-    <param name="resolution" type="double" value="0.01"/>
-    <node pkg="dense_mapping" type="dense_mapping_node" name="dense_mapping" output="screen">
-    </node>
-
-    <!--node pkg="viewer" type="viewer" name="viewer_node" output="screen" respawn="true">
-    </node-->
-
-    <!-- MH_01_easy V2_01_easy--> 
-    <!--node pkg="rosbag" type="play" name="player" output="log" args="/home/slam/Downloads/MH_01_easy.bag" /-->
-
-    <param name="player_fps" type="double" value="30"/>
-    <param name="img_nums" type="int" value="6000"/>
-
-    <param name="kitti_path" type="string" value="/home/slam/Datasets/KITTI/data_odometry_color/dataset/sequences/00/image_2/"/>
-    <!--node pkg="player" type="kitti_player" name="kitti_player" output="log"/-->
-
-    <param name="tum_path" type="string" value="/home/slam/Datasets/TUM/03-Structure_vs._Texture/rgbd_dataset_freiburg3_structure_texture_far/"/>
-    <!--node pkg="player" type="tum_player" name="tum_player" output="log"/-->
-
-    <!-- living_room_traj0_frei_png traj0_frei_png--> 
-    <param name="icl_nuim_path" type="string" value="/home/slam/Datasets/ICL-NUIM/living_room_traj1_frei_png/"/>
-    <!--node pkg="player" type="icl_nuim_player" name="icl_nuim_player" output="log"/-->
-
-    <param name="euroc_path" type="string" value="/home/slam/Datasets/EuRoC/MH_01_easy/"/>
-    <node pkg="player" type="euroc_player" name="euroc_player" output="log"/>
+    <!-- Run dense_mapping -->
+    <node name="dense_mapping_node" pkg="dense_mapping" type="dense_mapping_node" machine="my_machine" output="screen"/>
 
 </launch>
